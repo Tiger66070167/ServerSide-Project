@@ -1,0 +1,38 @@
+<h3>Edit Task</h3>
+<form method="POST" action="/tasks/update/<%= task.task_id %>">
+  <label>Title:</label>
+  <input type="text" name="title" value="<%= task.title %>" required>
+
+  <label>Description:</label>
+  <textarea name="description"><%= task.description %></textarea>
+
+  <label>Due Date:</label>
+  <input type="datetime-local" name="due_date"
+    value="<%= task.due_date ? new Date(task.due_date).toISOString().slice(0, 16) : '' %>">
+
+  <label>Priority:</label>
+  <select name="priority">
+    <% ['low', 'medium', 'high'].forEach(p => { %>
+      <option value="<%= p %>" <%= task.priority === p ? 'selected' : '' %>><%= p %></option>
+    <% }) %>
+  </select>
+
+  <label>Status:</label>
+  <select name="status">
+    <% ['pending', 'In progress', 'completed'].forEach(s => { %>
+      <option value="<%= s %>" <%= task.status === s ? 'selected' : '' %>><%= s.replace('_', ' ') %></option>
+    <% }) %>
+  </select>
+
+  <label>Category:</label>
+  <select name="category_id">
+    <option value="">-- None --</option>
+    <% categories.forEach(cat => { %>
+      <option value="<%= cat.category_id %>" <%= task.category_id === cat.category_id ? 'selected' : '' %>>
+        <%= cat.name %>
+      </option>
+    <% }) %>
+  </select>
+
+  <button type="submit">Update</button>
+</form>

@@ -1,0 +1,35 @@
+<h3>Create Task</h3>
+<form method="POST" action="/tasks/create">
+  <label>Title:</label>
+  <input type="text" name="title" required>
+
+  <label>Description:</label>
+  <textarea name="description"></textarea>
+
+  <label>Due Date:</label>
+  <input type="datetime-local" name="due_date">
+
+  <label>Priority:</label>
+  <select name="priority" required>
+    <option value="low">Low</option>
+    <option value="medium">Medium</option>
+    <option value="high">High</option>
+  </select>
+
+  <label>Status:</label>
+  <select name="status" required>
+    <option value="pending">Pending</option>
+    <option value="In progress">In Progress</option>
+    <option value="completed">Completed</option>
+  </select>
+
+  <label>Category:</label>
+  <select name="category_id">
+    <option value="">-- None --</option>
+    <% categories.forEach(cat => { %>
+      <option value="<%= cat.category_id %>"><%= cat.name %></option>
+    <% }) %>
+  </select>
+
+  <button type="submit">Create</button>
+</form>

@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const userModel = require('../models/userModel');
 
+
 exports.renderLogin = (req, res) => {
   res.render('login');
 };
@@ -46,12 +47,8 @@ exports.logout = (req, res) => {
   res.redirect('/login');
 };
 
-exports.renderHome = async (req, res) => {
+exports.renderIndex = async (req, res) => {
   const user = await userModel.findById(req.cookies.user_id);
   if (!user) return res.redirect('/login');
   res.render('index', { username: user.username });
 };
-
-exports.renderAbout = (req, res)=>{
-    res.render('about');
-}

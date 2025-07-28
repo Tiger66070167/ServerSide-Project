@@ -1,17 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="/css/style.css">
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/modal.css">
 </head>
 <body>
-    <%- include('partials/header') %>
-    <h2>Welcome, <%= username %>!</h2>
-    <a href="/logout">Logout</a>
+  <%- include('partials/header') %>
 
-    <%- include('partials/footer') %>
-    
+  <h2>Welcome, <%= username %>!</h2>
+
+  <button onclick="openModal('/tasks/new')">+ Create Task</button>
+
+  <ul>
+    <% if (tasks && tasks.length > 0) { %>
+      <% tasks.forEach(task => { %>
+        <li>
+          <strong><%= task.title %></strong> - 
+          <%= task.status %> - 
+          <%= new Date(task.created_at).toLocaleString() %> - 
+          <%= task.due_date ? new Date(task.due_date).toLocaleString() : 'N/A' %>
+          <button onclick="openModal('/tasks/edit/<%= task.task_id %>')">Edit</button>
+          <form method="POST" action="/tasks/delete/<%= task.task_id %>" style="display:inline">
+            <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+          </form>
+        </li>
+      <% }) %>
+    <% } else { %>
+      <li>No tasks available.</li>
+    <% } %>
+  </ul>
+
+  <a href="/logout">Logout</a>
+
+  <%- include('partials/footer') %>
+
+  <!-- Modal -->
+  <div id="modalContainer" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    async function openModal(url) {
+      const res = await fetch(url);
+      const html = await res.text();
+      document.getElementById('modalContent').innerHTML = html;
+      document.getElementById('modalContainer').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('modalContainer').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('modalContainer');
+      if (event.target === modal) closeModal();
+    }
+  </script>
 </body>
 </html>
