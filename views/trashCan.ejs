@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('partials/header') %>
+
+    <% if (tasks && tasks.length > 0) { %>
+    <% tasks.forEach(task => { %>
+        <% if (task.is_del === 1) { %>
+        <li>
+            <strong><%= task.title %></strong> -
+            <%= task.status %> -
+            <%= new Date(task.created_at).toLocaleString() %> -
+            <%= task.due_date ? new Date(task.due_date).toLocaleString() : 'N/A' %>
+
+            <form method="POST" action="/tasks/recover/<%= task.task_id %>" style="display:inline">
+                <button type="submit" onclick="return confirm('Are you sure?')">Recover</button>
+            </form>
+
+            <form method="POST" action="/tasks/delete/<%= task.task_id %>" style="display:inline">
+            
+            <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+            </form>
+        </li>
+        <% } %>
+    <% }) %>
+    <% } else { %>
+    <li>No tasks in Trashcan.</li>
+    <% } %>
+
+
+    <%- include('partials/footer') %>
+</body>
+</html>

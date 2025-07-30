@@ -6,9 +6,14 @@ exports.showTasks = async (req, res) => {
   const user = await userModel.findById(req.cookies.user_id);
   if (!user) return res.redirect('/login');
 
-  const tasks = await taskModel.getAllTasks();
-  res.render('index', { tasks, username: user.username });
+  const filter = req.query.status || 'All';
+  const tasks = (filter === 'All')
+    ? await taskModel.getAllTasks()
+    : await taskModel.getTasksByStatus(filter);
+
+  res.render('index', { tasks, username: user.username, filter });
 };
+
 
 exports.showCreateForm = async (req, res) => {
   const user_id = req.cookies.user_id;
@@ -65,3 +70,18 @@ exports.deleteTask = async (req, res) => {
   await taskModel.deleteTask(req.params.id);
   res.redirect('/tasks');
 };
+
+exports.softDeleteTask = async (req, res) => {
+  await taskModel.softDeleteTask(req.params.id);
+  res.redirect('/tasks');
+};
+
+exports.viewTrashCan = async (req, res) => {
+  const tasks = await taskModel.getDeletedTasks();
+  res.render('trashCan', { tasks });
+};
+
+exports.recoverTask = async (req, res) =>{
+  await taskModel.recoverTasks(req.params.id);
+  res.redirect('/tasks/trashCan')
+}

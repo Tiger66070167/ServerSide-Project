@@ -14,6 +14,16 @@
   <button onclick="openModal('/tasks/new')">+ Create Task</button>
 
   <ul>
+    <form method="GET" action="/tasks">
+    <label for="statusFilter">Filter by status:</label>
+        <select name="status" id="statusFilter" onchange="this.form.submit()">
+            <option value="All" <%= filter === 'All' ? 'selected' : '' %>>All</option>
+            <option value="Pending" <%= filter === 'Pending' ? 'selected' : '' %>>Pending</option>
+            <option value="In Progress" <%= filter === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+            <option value="Completed" <%= filter === 'Completed' ? 'selected' : '' %>>Completed</option>
+        </select>
+    </form>
+
     <% if (tasks && tasks.length > 0) { %>
       <% tasks.forEach(task => { %>
         <li>
@@ -21,9 +31,10 @@
           <%= task.status %> - 
           <%= new Date(task.created_at).toLocaleString() %> - 
           <%= task.due_date ? new Date(task.due_date).toLocaleString() : 'N/A' %>
+
           <button onclick="openModal('/tasks/edit/<%= task.task_id %>')">Edit</button>
-          <form method="POST" action="/tasks/delete/<%= task.task_id %>" style="display:inline">
-            <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+          <form method="POST" action="/tasks/softDeleteTask/<%= task.task_id %>" style="display:inline">
+            <button type="submit" onclick="return confirm('Are you sure?')">Move to Trashcan</button>
           </form>
         </li>
       <% }) %>
@@ -31,6 +42,8 @@
       <li>No tasks available.</li>
     <% } %>
   </ul>
+
+  <a href="/tasks/trashCan">Trashcan</a>
 
   <a href="/logout">Logout</a>
 
