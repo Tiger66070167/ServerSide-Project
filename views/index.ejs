@@ -15,14 +15,36 @@
 
   <ul>
     <form method="GET" action="/tasks">
-    <label for="statusFilter">Filter by status:</label>
-        <select name="status" id="statusFilter" onchange="this.form.submit()">
-            <option value="All" <%= filter === 'All' ? 'selected' : '' %>>All</option>
-            <option value="Pending" <%= filter === 'Pending' ? 'selected' : '' %>>Pending</option>
-            <option value="In Progress" <%= filter === 'In Progress' ? 'selected' : '' %>>In Progress</option>
-            <option value="Completed" <%= filter === 'Completed' ? 'selected' : '' %>>Completed</option>
-        </select>
+      <!-- Status Filter -->
+      <label>Status:</label>
+      <select name="status" onchange="this.form.submit()">
+        <option value="All" <%= filter === 'All' ? 'selected' : '' %>>All</option>
+        <option value="Pending" <%= filter === 'Pending' ? 'selected' : '' %>>Pending</option>
+        <option value="In Progress" <%= filter === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+        <option value="Completed" <%= filter === 'Completed' ? 'selected' : '' %>>Completed</option>
+      </select>
+
+      <!-- Category Filter -->
+      <label>Category:</label>
+      <select name="category_id" onchange="this.form.submit()">
+        <option value="">All</option>
+        <% categories.forEach(cat => { %>
+          <option value="<%= cat.category_id %>" <%= category_id == cat.category_id ? 'selected' : '' %>><%= cat.name %></option>
+        <% }) %>
+      </select>
+
+      <!-- Sort Options -->
+      <label>Sort by:</label>
+      <select name="sort" onchange="this.form.submit()">
+        <option value="">None</option>
+        <option value="priority" <%= sort === 'priority' ? 'selected' : '' %>>Priority</option>
+        <option value="due_date_asc" <%= sort === 'due_date_asc' ? 'selected' : '' %>>Due Date ↑</option>
+        <option value="due_date_desc" <%= sort === 'due_date_desc' ? 'selected' : '' %>>Due Date ↓</option>
+        <option value="az" <%= sort === 'az' ? 'selected' : '' %>>Title A-Z</option>
+        <option value="za" <%= sort === 'za' ? 'selected' : '' %>>Title Z-A</option>
+      </select>
     </form>
+
 
     <% if (tasks && tasks.length > 0) { %>
       <% tasks.forEach(task => { %>

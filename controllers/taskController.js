@@ -7,13 +7,14 @@ exports.showTasks = async (req, res) => {
   if (!user) return res.redirect('/login');
 
   const filter = req.query.status || 'All';
-  const tasks = (filter === 'All')
-    ? await taskModel.getAllTasks()
-    : await taskModel.getTasksByStatus(filter);
+  const category_id = req.query.category_id || null;
+  const sort = req.query.sort || null;
 
-  res.render('index', { tasks, username: user.username, filter });
+  const tasks = await taskModel.getFilteredAndSortedTasks(filter, category_id, sort, user.user_id);
+  const categories = await categoryModel.getCategoriesByUser(user.user_id);
+
+  res.render('index', { tasks, username: user.username, filter, categories, category_id, sort });
 };
-
 
 exports.showCreateForm = async (req, res) => {
   const user_id = req.cookies.user_id;
