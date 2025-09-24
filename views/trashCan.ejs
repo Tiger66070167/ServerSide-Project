@@ -11,7 +11,7 @@
 
     <% if (tasks && tasks.length > 0) { %>
     <% tasks.forEach(task => { %>
-        <% if (task.is_del === 1) { %>
+        <% if (task.is_deleted === 1) { %>
         <li>
             <strong><%= task.title %></strong> -
             <%= task.status %> -

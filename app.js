@@ -1,9 +1,11 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const path = require('path');
 
 const app = express();
 const port = 3000;
+
+const cron = require('node-cron');
+const userModel = require('./models/userModel');
 
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes')
@@ -18,7 +20,21 @@ app.use(express.static('public'));
 // Routes
 app.use('/tasks', taskRoutes);
 app.use('/', authRoutes);
-app.use('/', pageRoutes); 
+app.use('/', pageRoutes);
+
+// ตั้งเวลาให้ทำงานทุกๆ เที่ยงคืน
+cron.schedule('0 0 * * *', async () => {
+  console.log('Running a job to delete expired unverified users...');
+  try {
+    const deletedCount = await userModel.deleteUnverifiedExpiredUsers();
+    console.log(`Successfully deleted ${deletedCount} unverified users.`);
+  } catch (err) {
+    console.error('Error during scheduled deletion of users:', err);
+  }
+}, {
+  scheduled: true,
+  timezone: "Asia/Bangkok"
+});
 
 // Server
 app.listen(port, () => {

@@ -23,7 +23,7 @@ exports.showCreateForm = async (req, res) => {
 };
 
 exports.createTask = async (req, res) => {
-  const { title, description, due_date, priority, status, category_id } = req.body;
+  const { title, description, due_date, priority, category_id } = req.body;
   const user_id = req.cookies.user_id;
 
   await taskModel.createTask({
@@ -31,7 +31,7 @@ exports.createTask = async (req, res) => {
     description,
     due_date: due_date || null,
     priority,
-    status,
+    status: 'pending', // Always pending on create
     category_id: category_id || null,
     user_id
   });

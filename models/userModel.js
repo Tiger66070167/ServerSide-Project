@@ -1,23 +1,77 @@
-const db = require('../config/db');
+const pool = require('../config/db');
 
-module.exports = {
-  async findByUsernameOrEmail(login) {
-    const [rows] = await db.query(
-      'SELECT * FROM users WHERE username = ? OR email = ?',
-      [login, login]
+// สร้าง user
+exports.createUser = async ({ username, email, hashedPassword }) => {
+  const [result] = await pool.execute(
+    'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+    [username, email, hashedPassword]
+  );
+  return result.insertId;
+};
+
+// หา user โดย email หรือ username
+exports.findByUsernameOrEmail = async (login) => {
+  const [rows] = await pool.execute(
+    'SELECT * FROM users WHERE username = ? OR email = ? LIMIT 1',
+    [login, login]
+  );
+  return rows[0];
+};
+
+// เพิ่ม: หา user ด้วย email อย่างเดียว (จำเป็นสำหรับ verify)
+exports.findByEmail = async (email) => {
+    const [rows] = await pool.execute(
+      'SELECT * FROM users WHERE email = ? LIMIT 1',
+      [email]
     );
     return rows[0];
-  },
+};
 
-  async createUser({ username, email, hashedPassword }) {
-    await db.query(
-      'INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, NOW())',
-      [username, email, hashedPassword]
-    );
-  },
 
-  async findById(userId) {
-    const [rows] = await db.query('SELECT * FROM users WHERE user_id = ?', [userId]);
-    return rows[0];
-  }
+// หา user โดย id
+exports.findById = async (id) => {
+  const [rows] = await pool.execute(
+    'SELECT * FROM users WHERE user_id = ?',
+    [id]
+  );
+  return rows[0];
+};
+
+// อัปเดต token สำหรับ verify
+exports.updateVerifyToken = async (email, token, expiry) => {
+  await pool.execute(
+    'UPDATE users SET verify_token = ?, verify_token_expiry = ? WHERE email = ?',
+    [token, expiry, email]
+  );
+};
+
+// ยืนยันอีเมล
+exports.verifyUser = async (email) => {
+  await pool.execute(
+    'UPDATE users SET is_verified = 1, verify_token = NULL, verify_token_expiry = NULL WHERE email = ?',
+    [email]
+  );
+};
+
+exports.deleteUser = async (id) => {
+  await pool.execute(
+    'DELETE FROM users WHERE user_id = ?',
+    [id]
+  );
+};
+
+exports.updatePassword = async (email, hashedPassword) => {
+  await pool.execute(
+    'UPDATE users SET password_hash = ? WHERE email = ?',
+    [hashedPassword, email]
+  );
+}
+
+// ลบ user ที่ยังไม่ verify และ token หมดอายุไปแล้ว
+// Use "Cron Job"
+exports.deleteUnverifiedExpiredUsers = async () => {
+  const [result] = await pool.execute(
+    'DELETE FROM users WHERE is_verified = 0 AND verify_token_expiry < NOW()'
+  );
+  return result.affectedRows; // คืนค่าจำนวนแถวที่ถูกลบ
 };

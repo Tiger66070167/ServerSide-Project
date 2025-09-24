@@ -25,22 +25,12 @@ DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
   `category_id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
-  `user_id` int DEFAULT NULL,
+  `user_id` int NOT NULL,
   PRIMARY KEY (`category_id`),
-  KEY `user_id` (`user_id`),
+  KEY `idx_user_id` (`user_id`),
   CONSTRAINT `categories_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `categories`
---
-
-LOCK TABLES `categories` WRITE;
-/*!40000 ALTER TABLE `categories` DISABLE KEYS */;
-INSERT INTO `categories` VALUES (1,'Work',1),(2,'Personal',1);
-/*!40000 ALTER TABLE `categories` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `subtasks`
@@ -51,23 +41,14 @@ DROP TABLE IF EXISTS `subtasks`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `subtasks` (
   `subtask_id` int NOT NULL AUTO_INCREMENT,
-  `task_id` int NOT NULL,
   `description` varchar(255) NOT NULL,
-  `is_completed` tinyint(1) DEFAULT '0',
+  `is_completed` tinyint(1) NOT NULL DEFAULT '0',
+  `task_id` int NOT NULL,
   PRIMARY KEY (`subtask_id`),
-  KEY `task_id` (`task_id`),
+  KEY `idx_task_id` (`task_id`),
   CONSTRAINT `subtasks_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`task_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `subtasks`
---
-
-LOCK TABLES `subtasks` WRITE;
-/*!40000 ALTER TABLE `subtasks` DISABLE KEYS */;
-/*!40000 ALTER TABLE `subtasks` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `tasks`
@@ -81,29 +62,20 @@ CREATE TABLE `tasks` (
   `title` varchar(100) NOT NULL,
   `description` text,
   `due_date` datetime DEFAULT NULL,
-  `priority` enum('Low','Medium','High') DEFAULT 'Medium',
-  `status` enum('Pending','In Progress','Completed') DEFAULT 'Pending',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `priority` enum('low','medium','high') NOT NULL DEFAULT 'medium',
+  `status` enum('pending','in_progress','completed') NOT NULL DEFAULT 'pending',
+  `is_deleted` tinyint(1) NOT NULL DEFAULT '0',
   `user_id` int NOT NULL,
   `category_id` int DEFAULT NULL,
-  `is_del` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`task_id`),
-  KEY `user_id` (`user_id`),
-  KEY `category_id` (`category_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_category_id` (`category_id`),
   CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `tasks_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `tasks`
---
-
-LOCK TABLES `tasks` WRITE;
-/*!40000 ALTER TABLE `tasks` DISABLE KEYS */;
-INSERT INTO `tasks` VALUES (1,'Build Task App','Create a task management website',NULL,'Medium','In Progress','2025-07-27 09:57:37',1,1,0),(3,'Add Task Test','546545sdf','2025-07-28 20:00:00','Low','In Progress','2025-07-28 09:45:34',1,1,0),(5,'Test Completed','',NULL,'Low','Completed','2025-07-28 11:47:07',1,NULL,0);
-/*!40000 ALTER TABLE `tasks` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `users`
@@ -117,22 +89,23 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `is_verified` tinyint(1) NOT NULL DEFAULT '0',
+  `verify_token` varchar(255) DEFAULT NULL,
+  `verify_token_expiry` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `users`
+-- Dumping events for database 'task_manager'
 --
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Tiger','66070167@kmitl.ac.th','$2b$10$6f6uHHMUn/yHblSBRFhxB.eAcZcFWov4xZJTaiqP2Pu4EhhjMMgKC','2025-07-27 09:57:07'),(3,'test','test@gmail.com','$2b$10$XDSmAsba1nOQP7vHt1h4J.EoSad3bAUXbkmgd24D8zSZ/D938NJGC','2025-07-27 16:10:16');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
+--
+-- Dumping routines for database 'task_manager'
+--
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -143,4 +116,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-31  1:36:56
+-- Dump completed on 2025-09-24  7:10:11

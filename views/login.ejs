@@ -5,3 +5,7 @@
   <button type="submit">Login</button>
 </form>
 <a href="/register">Don't have an account? Register</a>
+
+<% if (error) { %>
+  <p style="color: red;"><%= error %></p>
+<% } %>
