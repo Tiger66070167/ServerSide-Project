@@ -18,8 +18,16 @@ router.get('/logout', authController.logout);
 const taskController = require('../controllers/taskController');
 router.get('/', checkAuth, taskController.showTasks);
 
-// Test Section
+// Email verification
 router.get('/verify', authController.verifyEmail);
-router.get('/delete', checkAuth, authController.deleteUser); // checkAuth จะทำให้เรามั่นใจว่ามี req.cookies.user_id
+
+// User settings
+router.get('/settings', checkAuth, authController.renderSettings);
+router.post('/settings/update', checkAuth, authController.updateUser);
+router.post('/settings/password', checkAuth, authController.changePassword);
+router.post('/user/delete', checkAuth, authController.deleteUser);
+
+// About page
+router.get('/about', checkAuth, authController.renderAbout); 
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
-
+const path = require('path');
 const app = express();
 const port = 3000;
 
@@ -9,18 +9,16 @@ const userModel = require('./models/userModel');
 
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes')
-const pageRoutes = require('./routes/pageRoutes');
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set('view engine', 'ejs');
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.use('/tasks', taskRoutes);
 app.use('/', authRoutes);
-app.use('/', pageRoutes);
 
 // ตั้งเวลาให้ทำงานทุกๆ เที่ยงคืน
 cron.schedule('0 0 * * *', async () => {

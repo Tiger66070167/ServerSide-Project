@@ -1,33 +1,388 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+  --primary-color: #007BFF; /* ฟ้า */
+  --secondary-color: #0056b3; /* น้ำเงินเข้ม */
+  --accent-color: #FF8C00; /* ส้ม */
+  --background-color: #f4f7f9;
+  --text-color: #333;
+  --card-background: #FFFFFF;
+  --border-color: #dee2e6;
+  --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 body {
-    font-family: 'Sarabun', sans-serif;
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-    color: #333;
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 20px;
 }
 
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.welcome-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.welcome-header h2 {
+  color: var(--secondary-color);
+  margin: 0;
+}
+
+.create-task-btn {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.create-task-btn:hover {
+  background-color: #e67e00;
+}
+
+.filters-container {
+  margin-bottom: 20px;
+}
+
+.filter-form {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-group label {
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: var(--secondary-color);
+}
+
+.filter-group select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background-color: white;
+  font-size: 14px;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-item {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: box-shadow 0.3s;
+}
+
+.task-item:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.task-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.task-details strong {
+  font-size: 18px;
+  color: var(--secondary-color);
+}
+
+.task-status {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  width: fit-content;
+}
+
+.task-status.pending { background-color: #6c757d; }
+.task-status.in-progress { background-color: var(--primary-color); }
+.task-status.completed { background-color: #28a745; }
+
+.task-date, .task-due-date {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.task-actions button {
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.edit-btn {
+  background-color: var(--primary-color);
+  color: white;
+  margin-right: 10px;
+}
+
+.edit-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+.trash-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.trash-btn:hover {
+  background-color: #c82333;
+}
+
+.no-tasks {
+  text-align: center;
+  padding: 20px;
+  color: #6c757d;
+}
+
+.dashboard-links {
+  margin-top: 30px;
+  padding-top: 15px;
+  border-top: 2px solid var(--border-color);
+  display: flex;
+  gap: 20px;
+}
+
+.dashboard-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.dashboard-link:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+.delete-link {
+  color: #dc3545;
+}
+
+.delete-link:hover {
+  color: #c82333;
+}
+
+/* =================================
+   HEADER STYLES
+   ================================= */
 header {
-    background: #333;
-    color: #fff;
-    padding: 1rem;
+  background-color: var(--secondary-color); /* ใช้สีน้ำเงินเข้มเป็นพื้นหลัง */
+  padding: 15px 40px; /* เพิ่มพื้นที่ว่างภายใน header (แนวตั้ง แนวนอน) */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* เพิ่มเงาเล็กน้อยเพื่อให้ดูมีมิติ */
+  color: white; /* กำหนดสีตัวอักษรเริ่มต้นเป็นสีขาว */
 }
 
-nav ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
+header nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none; /* ลบสัญลักษณ์ bullet point หน้า li */
+  display: flex; /* จัดเรียงรายการ li ในแนวนอน */
+  gap: 25px; /* กำหนดระยะห่างระหว่างแต่ละรายการ */
+  align-items: center; /* จัดให้รายการอยู่กึ่งกลางแนวตั้ง */
 }
 
-nav ul li a {
-    color: #fff;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
+header nav a {
+  color: white; /* สีของลิงก์ */
+  text-decoration: none; /* ลบเส้นใต้ลิงก์ */
+  font-weight: 500; /* ทำให้ตัวอักษรหนาขึ้นเล็กน้อย */
+  font-size: 16px;
+  transition: color 0.3s ease; /* เพิ่ม animation ตอนเปลี่ยนสี */
 }
 
+header nav a:hover {
+  color: var(--accent-color); /* เปลี่ยนเป็นสีส้มเมื่อเอาเมาส์ไปชี้ */
+}
+
+
+/* =================================
+   FOOTER STYLES
+   ================================= */
 footer {
-    background: #333;
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-    margin-top: 2rem;
+  text-align: center; /* จัดข้อความให้อยู่กึ่งกลาง */
+  margin-top: 40px; /* ระยะห่างจากเนื้อหาด้านบน */
+  padding: 20px; /* พื้นที่ว่างภายใน footer */
+  border-top: 1px solid var(--border-color); /* เพิ่มเส้นขอบด้านบน */
+  color: #6c757d; /* สีข้อความที่ไม่เข้มเกินไป ดูสบายตา */
+}
+
+footer p {
+  margin: 0; /* ลบ margin เริ่มต้นของ <p> */
+}
+
+/* =================================
+   HEADER & PROFILE DROPDOWN STYLES
+   ================================= */
+
+/* ปรับปรุง Header ให้รองรับ Profile Dropdown */
+header {
+  background-color: var(--secondary-color);
+  padding: 10px 40px; /* ปรับ padding เล็กน้อย */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  color: white;
+  display: flex; /* ทำให้ nav และ profile อยู่คนละฝั่งได้ */
+  justify-content: space-between; /* จัดให้อยู่คนละฝั่ง */
+  align-items: center; /* จัดให้อยู่กึ่งกลางแนวตั้ง */
+}
+
+/* ส่วนของ Profile Dropdown ทั้งหมด */
+.profile-dropdown {
+  position: relative; /* สำคัญมาก! เพื่อให้ dropdown-menu อ้างอิงตำแหน่งได้ */
+}
+
+/* ส่วนที่กดเพื่อเปิด-ปิด Dropdown */
+.profile-trigger {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 20px;
+  transition: background-color 0.3s;
+}
+
+.profile-trigger:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%; /* ทำให้รูปเป็นวงกลม */
+  margin-right: 10px;
+  object-fit: cover; /* ป้องกันไม่ให้รูปบิดเบี้ยว */
+}
+
+.username {
+  font-weight: 500;
+  margin-right: 5px;
+}
+
+.profile-trigger svg {
+  transition: transform 0.3s;
+}
+
+/* เมนูดรอปดาวน์ที่ซ่อนไว้ */
+.dropdown-menu {
+  display: none; /* ซ่อนไว้เป็นค่าเริ่มต้น */
+  position: absolute;
+  top: 120%; /* ระยะห่างจาก trigger */
+  right: 0;
+  background-color: var(--card-background);
+  color: var(--text-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  min-width: 160px;
+  z-index: 100; /* ทำให้แสดงผลทับองค์ประกอบอื่น */
+  overflow: hidden; /* ทำให้ border-radius มีผลกับ item ภายใน */
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* คลาส .show ที่จะถูกเพิ่มโดย JavaScript เพื่อแสดงเมนู */
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 12px 16px;
+  color: var(--text-color);
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: var(--background-color);
+}
+
+.dropdown-item.logout {
+  color: #dc3545; /* สีแดงสำหรับ Logout */
+}
+.dropdown-item.logout:hover {
+    background-color: #f8d7da;
+}
+
+/* Keyframe animation สำหรับการ Fade In */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* /css/style.css */
+
+/* ทำให้ li เป็น flex container เพื่อจัดวาง link และ action buttons ในแนวนอน */
+.task-item {
+  /* ... โค้ดอื่นๆ ของคุณ ... */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ทำให้ <a> ขยายเต็มพื้นที่ที่เหลือ ดันปุ่มไปทางขวา */
+.task-link {
+  text-decoration: none;
+  color: inherit;
+  flex-grow: 1; 
+}
+
+/* ⭐️⭐️⭐️ ส่วนสำคัญ: จัดการแสดงผลภายในลิงก์ ⭐️⭐️⭐️ */
+/* ทำให้ข้อมูลภายใน .task-details เรียงจากบนลงล่าง */
+.task-details {
+  display: flex;
+  flex-direction: column; /* เรียงแนวตั้ง */
+  gap: 5px; /* เพิ่มระยะห่างเล็กน้อยระหว่างบรรทัด */
+}
+
+.task-details strong {
+  font-size: 18px;
+  color: var(--secondary-color);
+}
+
+.task-date, .task-due-date {
+  font-size: 12px;
+  color: #6c757d;
 }

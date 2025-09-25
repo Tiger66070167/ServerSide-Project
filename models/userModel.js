@@ -53,6 +53,16 @@ exports.verifyUser = async (email) => {
   );
 };
 
+exports.updateUser = (userId, userData) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'UPDATE users SET username = ?, email = ? WHERE user_id = ?';
+    db.query(sql, [userData.username, userData.email, userId], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+
 exports.deleteUser = async (id) => {
   await pool.execute(
     'DELETE FROM users WHERE user_id = ?',
@@ -60,12 +70,15 @@ exports.deleteUser = async (id) => {
   );
 };
 
-exports.updatePassword = async (email, hashedPassword) => {
-  await pool.execute(
-    'UPDATE users SET password_hash = ? WHERE email = ?',
-    [hashedPassword, email]
-  );
-}
+exports.updatePassword = (userId, hashedPassword) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'UPDATE users SET password_hash = ? WHERE user_id = ?';
+    db.query(sql, [hashedPassword, userId], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
 
 // ลบ user ที่ยังไม่ verify และ token หมดอายุไปแล้ว
 // Use "Cron Job"

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subtasks for: <%= task.title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- เราอาจจะสร้าง subtask.css แยกเพื่อความสวยงาม แต่ตอนนี้ใช้ style.css ไปก่อน -->
+</head>
+<body>
+    <%- include('partials/header') %>
+
+    <div class="dashboard-container">
+        <a href="/tasks" class="dashboard-link" style="margin-top: 20px; display: inline-block;">← Back to All Tasks</a>
+        <!-- Task Details Header -->
+        <div class="task-detail-header">
+            <h1><%= task.title %></h1>
+            <p><%= task.description %></p>
+            <small>Due: <%= task.due_date ? new Date(task.due_date).toLocaleString() : 'N/A' %></small>
+        </div>
+
+        <!-- Subtask List -->
+        <div class="subtask-list">
+            <h2>Subtasks</h2>
+            <ul>
+                <% subtasks.forEach(subtask => { %>
+                    <li class="subtask-item <%= subtask.is_completed ? 'completed' : '' %>">
+                        <div class="subtask-info">
+                            <!-- Form for Toggling Status -->
+                            <form action="/tasks/subtasks/<%= subtask.subtask_id %>/toggle" method="POST" style="display: inline;">
+                                <input type="hidden" name="taskId" value="<%= task.task_id %>">
+                                <input type="checkbox" <%= subtask.is_completed ? 'checked' : '' %> onchange="this.form.submit()">
+                            </form>
+                            <span><%= subtask.description %></span>
+                        </div>
+                        <!-- Form for Deleting -->
+                        <form action="/tasks/subtasks/<%= subtask.subtask_id %>/delete" method="POST" onsubmit="return confirm('Delete this subtask?');">
+                            <input type="hidden" name="taskId" value="<%= task.task_id %>">
+                            <button type="submit" class="trash-btn">Delete</button>
+                        </form>
+                    </li>
+                <% }) %>
+                <% if (subtasks.length === 0) { %>
+                    <li class="no-tasks">No subtasks yet.</li>
+                <% } %>
+            </ul>
+        </div>
+
+        <!-- Add New Subtask Form -->
+        <div class="add-subtask-form">
+            <form action="/tasks/<%= task.task_id %>/subtasks/create" method="POST">
+                <input type="text" name="description" placeholder="Add a new subtask..." required>
+                <button type="submit" class="create-task-btn">+ Add Subtask</button>
+            </form>
+        </div>
+        
+        
+    </div>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

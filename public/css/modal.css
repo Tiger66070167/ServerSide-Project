@@ -1,24 +1,87 @@
 .modal {
-    display: none;
-    position: fixed;
-    z-index: 10;
-    left: 0; top: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
 }
 
 .modal-content {
-    background-color: white;
-    margin: 10% auto;
-    padding: 20px;
-    width: 400px;
-    border-radius: 10px;
+  background-color: #fefefe;
+  margin: 10% auto;
+  padding: 30px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  position: relative;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
 }
 
 .close {
-    float: right;
-    font-size: 24px;
-    cursor: pointer;
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 20px;
 }
 
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
 
+#modalContent h2 {
+    color: var(--secondary-color);
+    margin-top: 0;
+}
+
+#modalContent form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#modalContent label {
+    font-weight: 500;
+}
+
+#modalContent input[type="text"],
+#modalContent input[type="datetime-local"],
+#modalContent textarea,
+#modalContent select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+#modalContent button[type="submit"] {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+#modalContent button[type="submit"]:hover {
+    background-color: #e67e00;
+}

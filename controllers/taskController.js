@@ -1,7 +1,11 @@
 const taskModel = require('../models/taskModel');
 const userModel = require('../models/userModel');
 const categoryModel = require('../models/categoryModel')
+const subtaskModel = require('../models/subtaskModel');
 
+/* =================================
+   TASK CONTROLLER METHODS
+   ================================= */
 exports.showTasks = async (req, res) => {
   const user = await userModel.findById(req.cookies.user_id);
   if (!user) return res.redirect('/login');
@@ -77,12 +81,89 @@ exports.softDeleteTask = async (req, res) => {
   res.redirect('/tasks');
 };
 
-exports.viewTrashCan = async (req, res) => {
+exports.viewarchive = async (req, res) => {
   const tasks = await taskModel.getDeletedTasks();
-  res.render('trashCan', { tasks });
+  try {
+    if (req.cookies.user_id) {
+        const user = await userModel.findById(req.cookies.user_id);
+        if (user) {
+            username = user.username;
+        }
+    }
+
+  res.render('archive', { tasks, username });
+
+  } catch (err) {
+    console.error("Error rendering about page:", err.message);
+    res.redirect('/');
+  }
 };
 
 exports.recoverTask = async (req, res) =>{
   await taskModel.recoverTasks(req.params.id);
-  res.redirect('/tasks/trashCan')
+  res.redirect('/tasks/archive')
 }
+
+/* =================================
+   SUBTASK CONTROLLER METHODS
+   ================================= */
+
+// 1. แสดงหน้ารายละเอียด Task และ Subtasks
+exports.showSubtaskPage = async (req, res) => {
+  try {
+    const taskId = req.params.id;
+    const user = await userModel.findById(req.cookies.user_id);
+
+    // ดึงข้อมูล Task หลัก และ Subtasks ทั้งหมดพร้อมกัน
+    const [task, subtasks] = await Promise.all([
+      taskModel.getTaskById(taskId),
+      subtaskModel.getSubtasksByTaskId(taskId)
+    ]);
+
+    if (!task) {
+      return res.status(404).send('Task not found');
+    }
+
+    // Render หน้าใหม่ที่เราจะสร้างขึ้น (subtask.ejs)
+    res.render('subtask', { 
+      task: task, 
+      subtasks: subtasks, 
+      username: user.username 
+    });
+  } catch (err) {
+    console.error("Error showing subtask page:", err.message);
+    res.redirect('/tasks');
+  }
+};
+
+// 2. สร้าง Subtask ใหม่
+exports.createSubtask = async (req, res) => {
+  const taskId = req.params.id;
+  const { description } = req.body;
+  
+  if (description) {
+    await subtaskModel.createSubtask(description, taskId);
+  }
+  
+  res.redirect(`/tasks/${taskId}/subtasks`);
+};
+
+// 3. สลับสถานะ Subtask (เสร็จ/ยังไม่เสร็จ)
+exports.toggleSubtask = async (req, res) => {
+  const { subtaskId } = req.params;
+  const { taskId } = req.body; // เราจะส่ง taskId มาจากฟอร์มที่ซ่อนไว้
+  
+  await subtaskModel.toggleSubtaskStatus(subtaskId);
+  
+  res.redirect(`/tasks/${taskId}/subtasks`);
+};
+
+// 4. ลบ Subtask
+exports.deleteSubtask = async (req, res) => {
+  const { subtaskId } = req.params;
+  const { taskId } = req.body;
+  
+  await subtaskModel.deleteSubtask(subtaskId);
+  
+  res.redirect(`/tasks/${taskId}/subtasks`);
+};

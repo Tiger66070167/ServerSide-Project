@@ -3,15 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us</title>
     <link rel="stylesheet" href="/css/style.css">
+    <!-- ⭐️ ลิงก์ไฟล์ CSS ใหม่สำหรับหน้านี้โดยเฉพาะ -->
+    <link rel="stylesheet" href="/css/about.css">
+    <!-- เพิ่ม Font Awesome สำหรับ Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <%- include('partials/header') %>
 
-    <main>
-        <h1>เกี่ยวกับเรา</h1>
-        <p>นี่คือหน้าเกี่ยวกับเว็บไซต์ของเรา</p>
-    </main>
+    <div class="about-container">
+        <!-- Section 1: Hero Section -->
+        <section class="hero-section">
+            <h1>เกี่ยวกับ TaskMaster</h1>
+            <p class="subtitle">
+                เราสร้างสรรค์เครื่องมือที่จะช่วยให้คุณจัดการงานในชีวิตประจำวันได้อย่างมีประสิทธิภาพ
+                ลดความซับซ้อน เพิ่มเวลาให้กับสิ่งที่คุณรัก
+            </p>
+        </section>
+
+        <!-- Section 2: Features Section -->
+        <section class="features-section">
+            <h2>คุณสมบัติเด่นของเรา</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-tasks"></i>
+                    <h3>จัดการงานอย่างง่ายดาย</h3>
+                    <p>สร้าง, แก้ไข, และติดตามสถานะของงานทั้งหมดของคุณได้ในที่เดียว</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-filter"></i>
+                    <h3>ค้นหาและจัดเรียง</h3>
+                    <p>กรองงานตามสถานะ, หมวดหมู่, หรือจัดเรียงตามความสำคัญและวันที่ครบกำหนด</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-archive"></i>
+                    <h3>คลังเก็บข้อมูล</h3>
+                    <p>เครียร์งานที่ทำสำเร็จแล้วไปไว้ในคลังเก็บข้อมูล และยังสามารถดูรายการได้หากยังไม่ถึงเวลาหำหนดการลบข้อมูลในคลังโดยอัตโนมัต</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Team Section -->
+        <section class="team-section">
+            <h2>ทีมผู้พัฒนา</h2>
+            <div class="team-member">
+                <img src="/images/default-avatar.png" alt="Developer Avatar">
+                <h4>Meepond Prathomphol</h4>
+                <p>Full-Stack Developer</p>
+                <p class="team-bio">
+                    นักศึกษาท่านหนึ่งจาก IT KMITL
+                </p>
+            </div>
+        </section>
+    </div>
 
     <%- include('partials/footer') %>
 </body>

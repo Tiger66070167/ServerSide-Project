@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/modal.css">
@@ -9,67 +10,80 @@
 <body>
   <%- include('partials/header') %>
 
-  <h2>Welcome, <%= username %>!</h2>
+  <div class="dashboard-container">
+    <div class="welcome-header">
+      <h2>Welcome, <%= username %>!</h2>
+      <button class="create-task-btn" onclick="openModal('/tasks/new')">+ Create Task</button>
+    </div>
 
-  <button onclick="openModal('/tasks/new')">+ Create Task</button>
+    <div class="filters-container">
+      <form method="GET" action="/tasks" class="filter-form">
+        <div class="filter-group">
+          <label for="status">Status:</label>
+          <select name="status" id="status" onchange="this.form.submit()">
+            <option value="All" <%= filter === 'All' ? 'selected' : '' %>>All</option>
+            <option value="Pending" <%= filter === 'Pending' ? 'selected' : '' %>>Pending</option>
+            <option value="In Progress" <%= filter === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+            <option value="Completed" <%= filter === 'Completed' ? 'selected' : '' %>>Completed</option>
+          </select>
+        </div>
 
-  <ul>
-    <form method="GET" action="/tasks">
-      <!-- Status Filter -->
-      <label>Status:</label>
-      <select name="status" onchange="this.form.submit()">
-        <option value="All" <%= filter === 'All' ? 'selected' : '' %>>All</option>
-        <option value="Pending" <%= filter === 'Pending' ? 'selected' : '' %>>Pending</option>
-        <option value="In Progress" <%= filter === 'In Progress' ? 'selected' : '' %>>In Progress</option>
-        <option value="Completed" <%= filter === 'Completed' ? 'selected' : '' %>>Completed</option>
-      </select>
+        <div class="filter-group">
+          <label for="category">Category:</label>
+          <select name="category_id" id="category" onchange="this.form.submit()">
+            <option value="">All</option>
+            <% categories.forEach(cat => { %>
+              <option value="<%= cat.category_id %>" <%= category_id == cat.category_id ? 'selected' : '' %>><%= cat.name %></option>
+            <% }) %>
+          </select>
+        </div>
 
-      <!-- Category Filter -->
-      <label>Category:</label>
-      <select name="category_id" onchange="this.form.submit()">
-        <option value="">All</option>
-        <% categories.forEach(cat => { %>
-          <option value="<%= cat.category_id %>" <%= category_id == cat.category_id ? 'selected' : '' %>><%= cat.name %></option>
+        <div class="filter-group">
+          <label for="sort">Sort by:</label>
+          <select name="sort" id="sort" onchange="this.form.submit()">
+            <option value="">None</option>
+            <option value="priority" <%= sort === 'priority' ? 'selected' : '' %>>Priority</option>
+            <option value="due_date_asc" <%= sort === 'due_date_asc' ? 'selected' : '' %>>Due Date ↑</option>
+            <option value="due_date_desc" <%= sort === 'due_date_desc' ? 'selected' : '' %>>Due Date ↓</option>
+            <option value="az" <%= sort === 'az' ? 'selected' : '' %>>Title A-Z</option>
+            <option value="za" <%= sort === 'za' ? 'selected' : '' %>>Title Z-A</option>
+          </select>
+        </div>
+      </form>
+    </div>
+
+    <!-- ⭐️⭐️⭐️ จุดแก้ไข: เอา Loop ที่ซ้อนกันและ <ul> ที่ซ้ำซ้อนออก ⭐️⭐️⭐️ -->
+    <ul class="task-list">
+      <% if (tasks && tasks.length > 0) { %>
+        <% tasks.forEach(task => { %>
+          <li class="task-item">
+            <a href="/tasks/<%= task.task_id %>/subtasks" class="task-link">
+              <div class="task-details">
+                <strong><%= task.title %></strong>
+                <span class="task-status <%= task.status.toLowerCase().replace(' ', '-') %>"><%= task.status %></span>
+                <span class="task-date">Created: <%= new Date(task.created_at).toLocaleString() %></span>
+                <span class="task-due-date">Due: <%= task.due_date ? new Date(task.due_date).toLocaleString() : '' %></span>
+              </div>
+            </a>
+            
+            <div class="task-actions">
+              <button class="edit-btn" onclick="openModal('/tasks/edit/<%= task.task_id %>')">Edit</button>
+              <form method="POST" action="/tasks/softDeleteTask/<%= task.task_id %>" style="display:inline">
+                <button type="submit" class="trash-btn" onclick="return confirm('Are you sure?')">Move to Trash</button>
+              </form>
+            </div>
+          </li>
         <% }) %>
-      </select>
+      <% } else { %>
+        <li class="no-tasks">No tasks available.</li>
+      <% } %>
+    </ul>
+    <!-- ⭐️⭐️⭐️ สิ้นสุดการแก้ไข ⭐️⭐️⭐️ -->
 
-      <!-- Sort Options -->
-      <label>Sort by:</label>
-      <select name="sort" onchange="this.form.submit()">
-        <option value="">None</option>
-        <option value="priority" <%= sort === 'priority' ? 'selected' : '' %>>Priority</option>
-        <option value="due_date_asc" <%= sort === 'due_date_asc' ? 'selected' : '' %>>Due Date ↑</option>
-        <option value="due_date_desc" <%= sort === 'due_date_desc' ? 'selected' : '' %>>Due Date ↓</option>
-        <option value="az" <%= sort === 'az' ? 'selected' : '' %>>Title A-Z</option>
-        <option value="za" <%= sort === 'za' ? 'selected' : '' %>>Title Z-A</option>
-      </select>
-    </form>
-
-
-    <% if (tasks && tasks.length > 0) { %>
-      <% tasks.forEach(task => { %>
-        <li>
-          <strong><%= task.title %></strong> - 
-          <%= task.status %> - 
-          <%= new Date(task.created_at).toLocaleString() %> - 
-          <%= task.due_date ? new Date(task.due_date).toLocaleString() : 'N/A' %>
-
-          <button onclick="openModal('/tasks/edit/<%= task.task_id %>')">Edit</button>
-          <form method="POST" action="/tasks/softDeleteTask/<%= task.task_id %>" style="display:inline">
-            <button type="submit" onclick="return confirm('Are you sure?')">Move to Trashcan</button>
-          </form>
-        </li>
-      <% }) %>
-    <% } else { %>
-      <li>No tasks available.</li>
-    <% } %>
-  </ul>
-
-  <a href="/tasks/trashCan">Trashcan</a>
-
-  <a href="/logout">Logout</a>
-
-  <a href="/delete">Delete</a>
+    <div class="dashboard-links">
+      <a href="/tasks/archive" class="dashboard-link">Archive</a>
+    </div>
+  </div>
 
   <%- include('partials/footer') %>
 
