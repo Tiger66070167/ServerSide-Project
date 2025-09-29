@@ -13,11 +13,11 @@
   <div class="dashboard-container">
     <div class="welcome-header">
       <h2>Welcome, <%= username %>!</h2>
-      <button class="create-task-btn" onclick="openModal('/tasks/new')">+ Create Task</button>
+      <button class="create-task-btn" onclick="openModal('/new')">+ Create Task</button>
     </div>
 
     <div class="filters-container">
-      <form method="GET" action="/tasks" class="filter-form">
+      <form method="GET" action="/" class="filter-form">
         <div class="filter-group">
           <label for="status">Status:</label>
           <select name="status" id="status" onchange="this.form.submit()">
@@ -52,12 +52,11 @@
       </form>
     </div>
 
-    <!-- ⭐️⭐️⭐️ จุดแก้ไข: เอา Loop ที่ซ้อนกันและ <ul> ที่ซ้ำซ้อนออก ⭐️⭐️⭐️ -->
     <ul class="task-list">
       <% if (tasks && tasks.length > 0) { %>
         <% tasks.forEach(task => { %>
           <li class="task-item">
-            <a href="/tasks/<%= task.task_id %>/subtasks" class="task-link">
+            <a href="/<%= task.task_id %>/board" class="task-link">
               <div class="task-details">
                 <strong><%= task.title %></strong>
                 <span class="task-status <%= task.status.toLowerCase().replace(' ', '-') %>"><%= task.status %></span>
@@ -67,8 +66,8 @@
             </a>
             
             <div class="task-actions">
-              <button class="edit-btn" onclick="openModal('/tasks/edit/<%= task.task_id %>')">Edit</button>
-              <form method="POST" action="/tasks/softDeleteTask/<%= task.task_id %>" style="display:inline">
+              <button class="edit-btn" onclick="openModal('/edit/<%= task.task_id %>')">Edit</button>
+              <form method="POST" action="/softDeleteTask/<%= task.task_id %>" style="display:inline">
                 <button type="submit" class="trash-btn" onclick="return confirm('Are you sure?')">Move to Trash</button>
               </form>
             </div>
@@ -78,10 +77,9 @@
         <li class="no-tasks">No tasks available.</li>
       <% } %>
     </ul>
-    <!-- ⭐️⭐️⭐️ สิ้นสุดการแก้ไข ⭐️⭐️⭐️ -->
 
     <div class="dashboard-links">
-      <a href="/tasks/archive" class="dashboard-link">Archive</a>
+      <a href="/archive" class="dashboard-link">Archive</a>
     </div>
   </div>
 

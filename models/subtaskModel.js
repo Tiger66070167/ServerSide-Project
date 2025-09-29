@@ -1,30 +1,26 @@
 // models/subtaskModel.js
 const db = require('../config/db');
 
-// ดึง Subtasks ทั้งหมดของ Task ที่กำหนด
-exports.getSubtasksByTaskId = async (taskId) => {
-  const [rows] = await db.query('SELECT * FROM subtasks WHERE task_id = ? ORDER BY subtask_id ASC', [taskId]);
-  return rows;
+// --- List Functions ---
+exports.getListsByTaskId = async (taskId) => {
+  const [lists] = await db.query('SELECT * FROM subtask_lists WHERE task_id = ? ORDER BY created_at ASC', [taskId]);
+  return lists;
 };
 
-// สร้าง Subtask ใหม่
-exports.createSubtask = async (description, taskId) => {
-  const [result] = await db.query(
-    'INSERT INTO subtasks (description, is_completed, task_id) VALUES (?, ?, ?)',
-    [description, 0, taskId] // is_completed เริ่มต้นเป็น 0 (false)
-  );
-  return result.insertId;
+exports.createList = async (title, taskId) => {
+  await db.query('INSERT INTO subtask_lists (title, task_id) VALUES (?, ?)', [title, taskId]);
 };
 
-// สลับสถานะ is_completed ของ Subtask (0 -> 1, 1 -> 0)
-exports.toggleSubtaskStatus = async (subtaskId) => {
-  await db.query(
-    'UPDATE subtasks SET is_completed = !is_completed WHERE subtask_id = ?',
-    [subtaskId]
-  );
+// --- Card Functions ---
+exports.getCardsByListId = async (listId) => {
+  const [cards] = await db.query('SELECT * FROM subtask_cards WHERE list_id = ? ORDER BY created_at ASC', [listId]);
+  return cards;
 };
 
-// ลบ Subtask
-exports.deleteSubtask = async (subtaskId) => {
-  await db.query('DELETE FROM subtasks WHERE subtask_id = ?', [subtaskId]);
+exports.createCard = async (description, listId) => {
+  await db.query('INSERT INTO subtask_cards (description, list_id) VALUES (?, ?)', [description, listId]);
+};
+
+exports.moveCardToList = async (cardId, newListId) => {
+  await db.query('UPDATE subtask_cards SET list_id = ? WHERE card_id = ?', [newListId, cardId]);
 };

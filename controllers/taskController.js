@@ -7,17 +7,26 @@ const subtaskModel = require('../models/subtaskModel');
    TASK CONTROLLER METHODS
    ================================= */
 exports.showTasks = async (req, res) => {
-  const user = await userModel.findById(req.cookies.user_id);
-  if (!user) return res.redirect('/login');
+  try {
+    const user = await userModel.findById(req.cookies.user_id);
 
-  const filter = req.query.status || 'All';
-  const category_id = req.query.category_id || null;
-  const sort = req.query.sort || null;
+    if (!user) {
+      res.clearCookie('user_id');
+      return res.redirect('/login');
+    }
 
-  const tasks = await taskModel.getFilteredAndSortedTasks(filter, category_id, sort, user.user_id);
-  const categories = await categoryModel.getCategoriesByUser(user.user_id);
+    const filter = req.query.status || 'All';
+    const category_id = req.query.category_id || null;
+    const sort = req.query.sort || null;
 
-  res.render('index', { tasks, username: user.username, filter, categories, category_id, sort });
+    const tasks = await taskModel.getFilteredAndSortedTasks(filter, category_id, sort, user.user_id);
+    const categories = await categoryModel.getCategoriesByUser(user.user_id);
+
+    res.render('index', { tasks, user: user, username: user.username, filter, categories, category_id, sort });
+  } catch (err) {
+    console.error("Error in showTasks:", err);
+    res.redirect('/login');
+  }
 };
 
 exports.showCreateForm = async (req, res) => {
@@ -40,7 +49,7 @@ exports.createTask = async (req, res) => {
     user_id
   });
 
-  res.redirect('/tasks');
+  res.redirect('/');
 };
 
 exports.showEditForm = async (req, res) => {
@@ -68,17 +77,17 @@ exports.updateTask = async (req, res) => {
     category_id: category_id || null
   });
 
-  res.redirect('/tasks');
+  res.redirect('');
 };
 
 exports.deleteTask = async (req, res) => {
   await taskModel.deleteTask(req.params.id);
-  res.redirect('/tasks');
+  res.redirect('');
 };
 
 exports.softDeleteTask = async (req, res) => {
   await taskModel.softDeleteTask(req.params.id);
-  res.redirect('/tasks');
+  res.redirect('');
 };
 
 exports.viewarchive = async (req, res) => {
@@ -101,69 +110,72 @@ exports.viewarchive = async (req, res) => {
 
 exports.recoverTask = async (req, res) =>{
   await taskModel.recoverTasks(req.params.id);
-  res.redirect('/tasks/archive')
+  res.redirect('/archive')
 }
+// -----------------------------------------------------------
 
 /* =================================
    SUBTASK CONTROLLER METHODS
    ================================= */
 
 // 1. แสดงหน้ารายละเอียด Task และ Subtasks
-exports.showSubtaskPage = async (req, res) => {
+exports.showKanbanBoard = async (req, res) => {
   try {
     const taskId = req.params.id;
     const user = await userModel.findById(req.cookies.user_id);
 
-    // ดึงข้อมูล Task หลัก และ Subtasks ทั้งหมดพร้อมกัน
-    const [task, subtasks] = await Promise.all([
-      taskModel.getTaskById(taskId),
-      subtaskModel.getSubtasksByTaskId(taskId)
-    ]);
+    const task = await taskModel.getTaskById(taskId);
+    if (!task) return res.status(404).send('Task not found');
 
-    if (!task) {
-      return res.status(404).send('Task not found');
-    }
+    // 1. ดึง Lists ทั้งหมดของ Task นี้
+    const lists = await subtaskModel.getListsByTaskId(taskId);
 
-    // Render หน้าใหม่ที่เราจะสร้างขึ้น (subtask.ejs)
-    res.render('subtask', { 
-      task: task, 
-      subtasks: subtasks, 
-      username: user.username 
-    });
+    // 2. สำหรับแต่ละ List, ดึง Cards ทั้งหมดที่อยู่ใน List นั้น
+    const listsWithCards = await Promise.all(
+      lists.map(async (list) => {
+        const cards = await subtaskModel.getCardsByListId(list.list_id);
+        return { ...list, cards: cards }; // trả về object list mới có thêm thuộc tính cards
+      })
+    );
+
+    res.render('kanban', { task, lists: listsWithCards, user: user, username: user.username });
+
   } catch (err) {
-    console.error("Error showing subtask page:", err.message);
-    res.redirect('/tasks');
+    console.error("Error showing Kanban board:", err.message);
+    res.redirect('');
   }
 };
 
-// 2. สร้าง Subtask ใหม่
-exports.createSubtask = async (req, res) => {
+// 2. สร้าง List ใหม่
+exports.createList = async (req, res) => {
   const taskId = req.params.id;
-  const { description } = req.body;
-  
-  if (description) {
-    await subtaskModel.createSubtask(description, taskId);
+  const { title } = req.body;
+  if (title) {
+    await subtaskModel.createList(title, taskId);
   }
-  
-  res.redirect(`/tasks/${taskId}/subtasks`);
+  res.redirect(`/${taskId}/board`);
 };
 
-// 3. สลับสถานะ Subtask (เสร็จ/ยังไม่เสร็จ)
-exports.toggleSubtask = async (req, res) => {
-  const { subtaskId } = req.params;
-  const { taskId } = req.body; // เราจะส่ง taskId มาจากฟอร์มที่ซ่อนไว้
-  
-  await subtaskModel.toggleSubtaskStatus(subtaskId);
-  
-  res.redirect(`/tasks/${taskId}/subtasks`);
+// 3. สร้าง Card ใหม่ใน List
+exports.createCard = async (req, res) => {
+  const { listId } = req.params;
+  const { description, taskId } = req.body;
+  if (description) {
+    await subtaskModel.createCard(description, listId);
+  }
+  res.redirect(`/${taskId}/board`);
 };
 
-// 4. ลบ Subtask
-exports.deleteSubtask = async (req, res) => {
-  const { subtaskId } = req.params;
-  const { taskId } = req.body;
-  
-  await subtaskModel.deleteSubtask(subtaskId);
-  
-  res.redirect(`/tasks/${taskId}/subtasks`);
+// 4. ย้าย Card ไปยัง List อื่น
+exports.moveCard = async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    const { newListId } = req.body;
+    await subtaskModel.moveCardToList(cardId, newListId);
+    // ส่งสถานะ 200 OK กลับไปให้ JavaScript (fetch)
+    res.status(200).json({ message: 'Card moved successfully' });
+  } catch (err) {
+    console.error("Error moving card:", err.message);
+    res.status(500).json({ error: 'Failed to move card' });
+  }
 };

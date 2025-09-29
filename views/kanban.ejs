@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban for: <%= task.title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/kanban.css"> <!-- CSS ใหม่สำหรับ Kanban -->
+    <!-- เพิ่ม Library สำหรับ Drag and Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+</head>
+<body>
+    <%- include('partials/header') %>
+
+    <div class="kanban-container">
+        <div class="kanban-header">
+            <h1><%= task.title %></h1>
+            <p><%= task.description %></p>
+            <a href="" class="dashboard-link">← Back to All Tasks</a>
+        </div>
+
+        <div class="kanban-board">
+            <!-- Loop แสดง Lists (คอลัมน์) -->
+            <% lists.forEach(list => { %>
+                <div class="kanban-list">
+                    <h3 class="list-title"><%= list.title %></h3>
+                    <!-- Container สำหรับ Cards (สำคัญสำหรับ Drag & Drop) -->
+                    <div class="list-cards" data-list-id="<%= list.list_id %>">
+                        <!-- Loop แสดง Cards -->
+                        <% list.cards.forEach(card => { %>
+                            <div class="kanban-card" data-card-id="<%= card.card_id %>">
+                                <%= card.description %>
+                            </div>
+                        <% }) %>
+                    </div>
+                    <!-- Form สร้าง Card ใหม่ -->
+                    <form action="/lists/<%= list.list_id %>/cards/create" method="POST" class="add-card-form">
+                        <input type="hidden" name="taskId" value="<%= task.task_id %>">
+                        <input type="text" name="description" placeholder="+ Add a card" required>
+                        <button type="submit">Add</button>
+                    </form>
+                </div>
+            <% }) %>
+
+            <!-- Form สร้าง List (คอลัมน์) ใหม่ -->
+            <div class="kanban-list add-new-list">
+                <form action="/<%= task.task_id %>/lists/create" method="POST">
+                    <input type="text" name="title" placeholder="+ Add another list" required>
+                    <button type="submit">Add List</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- ทำให้ Drag and Drop ทำงาน ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const cardContainers = document.querySelectorAll('.list-cards');
+
+            cardContainers.forEach(container => {
+                new Sortable(container, {
+                    group: 'kanban', // ชื่อ group ต้องเหมือนกันเพื่อให้ย้ายข้ามคอลัมน์ได้
+                    animation: 150,
+                    onEnd: function (evt) {
+                        const cardId = evt.item.dataset.cardId;
+                        const newListId = evt.to.dataset.listId;
+                        
+                        // ส่ง request ไปยัง server เพื่อบันทึกการย้าย
+                        fetch(`/cards/${cardId}/move`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ newListId: newListId }),
+                        })
+                        .then(response => response.json())
+                        .then(data => console.log(data.message))
+                        .catch(error => console.error('Error:', error));
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

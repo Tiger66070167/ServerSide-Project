@@ -18,22 +18,18 @@ exports.findByUsernameOrEmail = async (login) => {
   return rows[0];
 };
 
-// เพิ่ม: หา user ด้วย email อย่างเดียว (จำเป็นสำหรับ verify)
+// หา user ด้วย email อย่างเดียว
 exports.findByEmail = async (email) => {
-    const [rows] = await pool.execute(
-      'SELECT * FROM users WHERE email = ? LIMIT 1',
-      [email]
-    );
-    return rows[0];
+  const [rows] = await pool.execute(
+    'SELECT * FROM users WHERE email = ? LIMIT 1',
+    [email]
+  );
+  return rows[0];
 };
 
-
-// หา user โดย id
-exports.findById = async (id) => {
-  const [rows] = await pool.execute(
-    'SELECT * FROM users WHERE user_id = ?',
-    [id]
-  );
+// หา user โดย id (ปรับปรุงเป็น async/await)
+exports.findById = async (userId) => {
+  const [rows] = await pool.execute('SELECT * FROM users WHERE user_id = ?', [userId]);
   return rows[0];
 };
 
@@ -53,16 +49,7 @@ exports.verifyUser = async (email) => {
   );
 };
 
-exports.updateUser = (userId, userData) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'UPDATE users SET username = ?, email = ? WHERE user_id = ?';
-    db.query(sql, [userData.username, userData.email, userId], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
-};
-
+// ลบ user
 exports.deleteUser = async (id) => {
   await pool.execute(
     'DELETE FROM users WHERE user_id = ?',
@@ -70,18 +57,48 @@ exports.deleteUser = async (id) => {
   );
 };
 
-exports.updatePassword = (userId, hashedPassword) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'UPDATE users SET password_hash = ? WHERE user_id = ?';
-    db.query(sql, [hashedPassword, userId], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+// อัปเดตข้อมูลโปรไฟล์ผู้ใช้
+exports.updateUserProfile = async (userId, userData) => {
+  // ⭐️⭐️⭐️ เพิ่ม Log ที่นี่ ⭐️⭐️⭐️
+  console.log("--- 3. INSIDE updateUserProfile MODEL ---");
+
+  let sql = 'UPDATE users SET username = ?, email = ?';
+  const params = [userData.username, userData.email];
+
+  if (userData.avatarUrl) {
+    sql += ', avatar_url = ?';
+    params.push(userData.avatarUrl);
+  }
+
+  sql += ' WHERE user_id = ?';
+  params.push(userId);
+
+  console.log("Executing SQL:", sql);
+  console.log("With Params:", params);
+
+  // เราจะเปลี่ยนมาใช้ try...catch ที่นี่ เพื่อดักจับ Error จากฐานข้อมูล
+  try {
+    const [result] = await pool.execute(sql, params);
+    console.log("SQL executed successfully. Result:", result);
+    return result; // ส่งผลลัพธ์กลับไปให้ Controller
+  } catch (dbError) {
+    console.error("!!! DATABASE ERROR in updateUserProfile !!!", dbError);
+    // **สำคัญ:** เมื่อเกิด error เราต้อง throw มันออกไป
+    // เพื่อให้ try...catch ใน Controller สามารถจับได้
+    throw dbError;
+  }
+};
+
+// อัปเดตรหัสผ่าน
+exports.updatePassword = async (userId, hashedPassword) => {
+  const [result] = await pool.execute(
+    'UPDATE users SET password_hash = ? WHERE user_id = ?',
+    [hashedPassword, userId]
+  );
+  return result;
 };
 
 // ลบ user ที่ยังไม่ verify และ token หมดอายุไปแล้ว
-// Use "Cron Job"
 exports.deleteUnverifiedExpiredUsers = async () => {
   const [result] = await pool.execute(
     'DELETE FROM users WHERE is_verified = 0 AND verify_token_expiry < NOW()'

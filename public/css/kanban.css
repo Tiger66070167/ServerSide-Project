@@ -1,0 +1,77 @@
+/* public/css/kanban.css */
+.kanban-container {
+    padding: 20px;
+    max-width: 100%;
+}
+
+.kanban-header {
+    margin-bottom: 20px;
+}
+.kanban-header h1 { color: var(--secondary-color); }
+
+.kanban-board {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto; /* ทำให้ scroll แนวนอนได้ */
+    padding-bottom: 15px; /* เพิ่มพื้นที่ให้ scrollbar */
+    align-items: flex-start; /* ทำให้คอลัมน์เรียงจากด้านบน */
+}
+
+.kanban-list {
+    flex: 0 0 280px; /* ไม่ยืด, ไม่หด, กว้าง 280px */
+    background-color: #f4f5f7;
+    border-radius: 8px;
+    padding: 10px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.list-title {
+    font-weight: 600;
+    padding: 5px 8px;
+    color: var(--text-color);
+}
+
+.list-cards {
+    flex-grow: 1;
+    overflow-y: auto; /* scroll แนวตั้งถ้า card เยอะ */
+    min-height: 50px; /* พื้นที่ขั้นต่ำสำหรับ drop */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.kanban-card {
+    background-color: var(--card-background);
+    padding: 12px;
+    border-radius: 5px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    cursor: grab;
+    font-size: 14px;
+}
+.kanban-card:hover {
+    background-color: #fdfdfd;
+}
+
+.add-card-form input, .add-new-list form input {
+    width: 100%;
+    border: none;
+    background: none;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.add-card-form, .add-new-list form {
+    display: flex;
+    margin-top: 10px;
+}
+
+.add-card-form button, .add-new-list form button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
+}

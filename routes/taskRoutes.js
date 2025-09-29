@@ -1,25 +1,25 @@
+// routes/taskRoutes.js
 const express = require('express');
 const router = express.Router();
 const taskController = require('../controllers/taskController');
+const { checkAuth, setNoCache } = require('../middleware/authMiddleware');
 
-router.get('/', taskController.showTasks);             // List all tasks
-router.get('/new', taskController.showCreateForm);     // Show new task form
-router.post('/create', taskController.createTask);     // Create task
-router.get('/edit/:id', taskController.showEditForm);  // Show edit form
-router.post('/update/:id', taskController.updateTask); // Update task
-router.post('/softDeleteTask/:id', taskController.softDeleteTask); // softDelete task
-router.post('/delete/:id', taskController.deleteTask); // Delete task
-router.get('/archive', taskController.viewarchive); // Go to archive
-router.post('/recover/:id', taskController.recoverTask);
+// --- Main Task Dashboard ---
+router.get('/', checkAuth, setNoCache, taskController.showTasks);
 
-router.get('/:id/subtasks', taskController.showSubtaskPage);
+// --- Task Management ---
+router.get('/new', checkAuth, taskController.showCreateForm);
+router.post('/create', checkAuth, taskController.createTask);
+router.get('/edit/:id', checkAuth, taskController.showEditForm);
+router.post('/update/:id', checkAuth, taskController.updateTask);
 
-router.get('/edit/:id', taskController.showEditForm);
-router.post('/update/:id', taskController.updateTask);
+// --- Archive ---
+router.get('/archive', checkAuth, setNoCache, taskController.viewarchive);
 
-router.post('/:id/subtasks/create', taskController.createSubtask);
-router.post('/subtasks/:subtaskId/toggle', taskController.toggleSubtask);
-router.post('/subtasks/:subtaskId/delete', taskController.deleteSubtask);
-
+// --- Subtask & Kanban Routes ---
+router.get('/:id/board', checkAuth, taskController.showKanbanBoard);
+router.post('/:id/lists/create', checkAuth, taskController.createList);
+router.post('/lists/:listId/cards/create', checkAuth, taskController.createCard);
+router.post('/cards/:cardId/move', checkAuth, taskController.moveCard);
 
 module.exports = router;

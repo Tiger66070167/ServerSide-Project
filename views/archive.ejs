@@ -18,11 +18,11 @@
             <%= new Date(task.created_at).toLocaleString() %> -
             <%= task.due_date ? new Date(task.due_date).toLocaleString() : 'N/A' %>
 
-            <form method="POST" action="/tasks/recover/<%= task.task_id %>" style="display:inline">
+            <form method="POST" action="/recover/<%= task.task_id %>" style="display:inline">
                 <button type="submit" onclick="return confirm('Are you sure?')">Recover</button>
             </form>
 
-            <form method="POST" action="/tasks/delete/<%= task.task_id %>" style="display:inline">
+            <form method="POST" action="/delete/<%= task.task_id %>" style="display:inline">
             
             <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
             </form>

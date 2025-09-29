@@ -33,20 +33,38 @@ CREATE TABLE `categories` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `subtasks`
+-- Table structure for table `subtask_cards`
 --
 
-DROP TABLE IF EXISTS `subtasks`;
+DROP TABLE IF EXISTS `subtask_cards`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `subtasks` (
-  `subtask_id` int NOT NULL AUTO_INCREMENT,
-  `description` varchar(255) NOT NULL,
-  `is_completed` tinyint(1) NOT NULL DEFAULT '0',
+CREATE TABLE `subtask_cards` (
+  `card_id` int NOT NULL AUTO_INCREMENT,
+  `description` text NOT NULL,
+  `list_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`card_id`),
+  KEY `list_id` (`list_id`),
+  CONSTRAINT `subtask_cards_ibfk_1` FOREIGN KEY (`list_id`) REFERENCES `subtask_lists` (`list_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `subtask_lists`
+--
+
+DROP TABLE IF EXISTS `subtask_lists`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `subtask_lists` (
+  `list_id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(100) NOT NULL,
   `task_id` int NOT NULL,
-  PRIMARY KEY (`subtask_id`),
-  KEY `idx_task_id` (`task_id`),
-  CONSTRAINT `subtasks_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`task_id`) ON DELETE CASCADE
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`list_id`),
+  KEY `task_id` (`task_id`),
+  CONSTRAINT `subtask_lists_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`task_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -93,19 +111,12 @@ CREATE TABLE `users` (
   `verify_token` varchar(255) DEFAULT NULL,
   `verify_token_expiry` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `avatar_url` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping events for database 'task_manager'
---
-
---
--- Dumping routines for database 'task_manager'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -116,4 +127,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-24  7:10:11
+-- Dump completed on 2025-09-25  6:16:12
