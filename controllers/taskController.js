@@ -249,3 +249,31 @@ exports.deleteCard = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete card' });
   }
 };
+
+exports.getCardDetails = async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    const card = await subtaskModel.getCardById(cardId);
+    if (!card) {
+      return res.status(404).json({ error: 'Card not found' });
+    }
+    res.status(200).json(card);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch card details' });
+  }
+};
+
+exports.reorderLists = async (req, res) => {
+  try {
+    const { listIds } = req.body; // รับ Array ของ list IDs ที่เรียงลำดับแล้ว
+    if (!listIds || !Array.isArray(listIds)) {
+      return res.status(400).json({ error: 'Invalid data format' });
+    }
+    await subtaskModel.updateListOrder(listIds);
+    res.status(200).json({ message: 'List order updated successfully' });
+  } catch (err) {
+    console.error("Error reordering lists:", err.message);
+    res.status(500).json({ error: 'Failed to reorder lists' });
+  }
+};
+

@@ -59,8 +59,6 @@ exports.deleteUser = async (id) => {
 
 // อัปเดตข้อมูลโปรไฟล์ผู้ใช้
 exports.updateUserProfile = async (userId, userData) => {
-  // ⭐️⭐️⭐️ เพิ่ม Log ที่นี่ ⭐️⭐️⭐️
-  console.log("--- 3. INSIDE updateUserProfile MODEL ---");
 
   let sql = 'UPDATE users SET username = ?, email = ?';
   const params = [userData.username, userData.email];

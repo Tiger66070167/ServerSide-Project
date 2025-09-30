@@ -3,7 +3,7 @@ const db = require('../config/db');
 
 // --- List Functions ---
 exports.getListsByTaskId = async (taskId) => {
-  const [lists] = await db.query('SELECT * FROM subtask_lists WHERE task_id = ? ORDER BY created_at ASC', [taskId]);
+  const [lists] = await db.query('SELECT * FROM subtask_lists WHERE task_id = ? ORDER BY order_index ASC', [taskId]);
   return lists;
 };
 
@@ -67,4 +67,17 @@ exports.updateCardDescription = async (cardId, newDescription) => {
 
 exports.deleteCard = async (cardId) => {
   await db.query('DELETE FROM subtask_cards WHERE card_id = ?', [cardId]);
+};
+
+exports.getCardById = async (cardId) => {
+  const [rows] = await db.query('SELECT * FROM subtask_cards WHERE card_id = ?', [cardId]);
+  return rows[0]; // คืนค่าข้อมูลของ card ใบนั้น
+};
+
+exports.updateListOrder = async (listOrder) => {
+  // listOrder จะเป็น array ของ [list_id, list_id, ...]
+  const promises = listOrder.map((listId, index) => {
+    return db.query('UPDATE subtask_lists SET order_index = ? WHERE list_id = ?', [index, listId]);
+  });
+  await Promise.all(promises);
 };

@@ -33,5 +33,8 @@ router.post('/cards/:cardId/update', checkAuth, taskController.updateCard);
 // ลบ Card
 router.post('/cards/:cardId/delete', checkAuth, taskController.deleteCard);
 
+router.get('/cards/:cardId', taskController.getCardDetails);
+
+router.post('/lists/reorder', taskController.reorderLists);
 
 module.exports = router;

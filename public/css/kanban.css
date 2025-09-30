@@ -108,7 +108,7 @@ body {
 .card-action-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 5px; color: #495057; }
 .card-action-btn:hover { color: var(--primary-color); }
 .card-action-btn.delete:hover { color: #dc3545; }
-
+.card-description { white-space: pre-wrap; word-break: break-word; }
 
 /* --- New Add Card Composer & Button --- */
 .add-card-button {
@@ -146,3 +146,36 @@ body {
     background-color: rgba(0,0,0,0.1); color: #172b4d; border: none; border-radius: 5px; padding: 8px 12px; cursor: pointer; font-weight: 500;
 }
 .add-new-list form button:hover { background-color: rgba(0,0,0,0.15); }
+
+.list-header {
+    position: relative; /* ทำให้ dropdown อ้างอิงตำแหน่งได้ */
+}
+.list-actions-menu {
+    position: absolute;
+    top: 100%; /* แสดงผลใต้ปุ่ม ... */
+    right: 0;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    z-index: 10;
+    width: 150px;
+    display: none; /* ซ่อนไว้เป็นค่าเริ่มต้น */
+}
+.list-actions-menu.show {
+    display: block;
+}
+.list-actions-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+.list-actions-menu button:hover {
+    background-color: #f0f2f5;
+}
+.list-actions-menu button.delete {
+    color: #dc3545;
+}
