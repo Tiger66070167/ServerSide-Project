@@ -67,7 +67,14 @@ exports.getFilteredAndSortedTasks = async (status, category_id, sort, user_id) =
   // Sorting
   switch (sort) {
     case 'priority':
-      query += ' ORDER BY priority ASC';
+      query += `
+        ORDER BY
+          CASE
+            WHEN priority = 'high' THEN 1
+            WHEN priority = 'medium' THEN 2
+            WHEN priority = 'low' THEN 3
+          END ASC
+      `;
       break;
     case 'due_date_asc':
       query += ' ORDER BY due_date ASC';

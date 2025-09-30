@@ -21,5 +21,17 @@ router.get('/:id/board', checkAuth, taskController.showKanbanBoard);
 router.post('/:id/lists/create', checkAuth, taskController.createList);
 router.post('/lists/:listId/cards/create', checkAuth, taskController.createCard);
 router.post('/cards/:cardId/move', checkAuth, taskController.moveCard);
+router.post('/lists/:listId/cards/create', checkAuth, taskController.createCard);
+
+// แก้ไข List (PUT/PATCH เป็น method ที่เหมาะสมกว่า แต่ POST ก็ใช้ได้)
+router.post('/lists/:listId/update', checkAuth, taskController.updateList); 
+// ลบ List
+router.post('/lists/:listId/delete', checkAuth, taskController.deleteList);
+
+// แก้ไข Card
+router.post('/cards/:cardId/update', checkAuth, taskController.updateCard);
+// ลบ Card
+router.post('/cards/:cardId/delete', checkAuth, taskController.deleteCard);
+
 
 module.exports = router;

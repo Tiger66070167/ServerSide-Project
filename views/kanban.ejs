@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kanban for: <%= task.title %></title>
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/kanban.css"> <!-- CSS ใหม่สำหรับ Kanban -->
-    <!-- เพิ่ม Library สำหรับ Drag and Drop -->
+    <link rel="stylesheet" href="/css/kanban.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 </head>
 <body>
@@ -15,71 +18,256 @@
     <div class="kanban-container">
         <div class="kanban-header">
             <h1><%= task.title %></h1>
-            <p><%= task.description %></p>
-            <a href="" class="dashboard-link">← Back to All Tasks</a>
+            <p class="task-description"><%= task.description || 'No description provided.' %></p>
+            <div class="kanban-meta">
+                <span><i class="fas fa-plus-circle"></i> Created: <%= new Date(task.created_at).toLocaleDateString() %></span>
+                <span><i class="fas fa-calendar-alt"></i> Due: <%= task.due_date ? new Date(task.due_date).toLocaleDateString() : 'None' %></span>
+                <span><i class="fas fa-flag"></i> Priority: <%= task.priority || 'N/A' %></span>
+                <span><i class="fas fa-columns"></i> Lists: <%= lists.length %></span>
+            </div>
+            <a href="/" class="dashboard-link">← Back to All Tasks</a>
         </div>
 
         <div class="kanban-board">
-            <!-- Loop แสดง Lists (คอลัมน์) -->
             <% lists.forEach(list => { %>
-                <div class="kanban-list">
-                    <h3 class="list-title"><%= list.title %></h3>
-                    <!-- Container สำหรับ Cards (สำคัญสำหรับ Drag & Drop) -->
+                <div class="kanban-list" data-list-id="<%= list.list_id %>">
+                    <div class="list-header">
+                        <h3 class="list-title"><%= list.title %></h3>
+                        <button class="list-actions-btn" title="List actions"><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
                     <div class="list-cards" data-list-id="<%= list.list_id %>">
-                        <!-- Loop แสดง Cards -->
                         <% list.cards.forEach(card => { %>
                             <div class="kanban-card" data-card-id="<%= card.card_id %>">
-                                <%= card.description %>
+                                <span class="card-description"><%= card.description %></span>
+                                <div class="card-actions">
+                                    <button class="card-action-btn edit" title="Edit card"><i class="fas fa-pen"></i></button>
+                                    <button class="card-action-btn delete" title="Delete card"><i class="fas fa-trash"></i></button>
+                                </div>
                             </div>
                         <% }) %>
                     </div>
-                    <!-- Form สร้าง Card ใหม่ -->
-                    <form action="/lists/<%= list.list_id %>/cards/create" method="POST" class="add-card-form">
-                        <input type="hidden" name="taskId" value="<%= task.task_id %>">
-                        <input type="text" name="description" placeholder="+ Add a card" required>
-                        <button type="submit">Add</button>
-                    </form>
+                    <div class="add-card-composer">
+                        <form action="/lists/<%= list.list_id %>/cards/create" method="POST" class="add-card-form">
+                            <textarea name="description" placeholder="Enter a title for this card..." required></textarea>
+                            <div class="composer-actions">
+                                <button type="submit" class="add">Add Card</button>
+                                <button type="button" class="cancel">&times;</button>
+                            </div>
+                        </form>
+                    </div>
+                    <button class="add-card-button"><i class="fas fa-plus"></i> Add a card</button>
                 </div>
             <% }) %>
-
-            <!-- Form สร้าง List (คอลัมน์) ใหม่ -->
+            
             <div class="kanban-list add-new-list">
-                <form action="/<%= task.task_id %>/lists/create" method="POST">
-                    <input type="text" name="title" placeholder="+ Add another list" required>
+                <form id="add-list-form" action="/<%= task.task_id %>/lists/create" method="POST">
+                    <input type="text" name="title" placeholder="+ Add another list" required autocomplete="off">
                     <button type="submit">Add List</button>
                 </form>
             </div>
         </div>
     </div>
+    
+    <%- include('partials/footer') %>
 
+    <!-- ============================================= -->
+    <!-- JAVASCRIPT FOR DYNAMIC ACTIONS                -->
+    <!-- ============================================= -->
     <script>
-        // --- ทำให้ Drag and Drop ทำงาน ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const cardContainers = document.querySelectorAll('.list-cards');
+        // --- Helper: Toast Notification ---
+        function showToast(message, type = 'success') {
+            Toastify({ text: message, duration: 3000, close: true, gravity: "top", position: "right", stopOnFocus: true, style: { background: type === 'success' ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)", }, }).showToast();
+        }
 
-            cardContainers.forEach(container => {
-                new Sortable(container, {
-                    group: 'kanban', // ชื่อ group ต้องเหมือนกันเพื่อให้ย้ายข้ามคอลัมน์ได้
-                    animation: 150,
-                    onEnd: function (evt) {
-                        const cardId = evt.item.dataset.cardId;
-                        const newListId = evt.to.dataset.listId;
-                        
-                        // ส่ง request ไปยัง server เพื่อบันทึกการย้าย
-                        fetch(`/cards/${cardId}/move`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ newListId: newListId }),
-                        })
-                        .then(response => response.json())
-                        .then(data => console.log(data.message))
-                        .catch(error => console.error('Error:', error));
-                    }
-                });
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSortable();
+            initializeAddListForm();
+            
+            const board = document.querySelector('.kanban-board');
+
+            board.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target.closest('.add-card-button')) { showComposer(target.closest('.kanban-list')); }
+                if (target.closest('.add-card-composer .cancel')) { hideComposer(target.closest('.kanban-list')); }
+                if (target.closest('.list-title')) { handleEditListTitle(target.closest('.list-title')); }
+                if (target.closest('.list-actions-btn')) { handleDeleteList(target.closest('.kanban-list')); }
+                if (target.closest('.card-action-btn.edit')) { handleEditCard(target.closest('.kanban-card')); }
+                if (target.closest('.card-action-btn.delete')) { handleDeleteCard(target.closest('.kanban-card')); }
             });
+
+            document.addEventListener('click', (event) => {
+                if (!event.target.closest('.kanban-list')) {
+                    document.querySelectorAll('.add-card-composer').forEach(composer => {
+                        if (composer.style.display === 'block') { hideComposer(composer.closest('.kanban-list')); }
+                    });
+                }
+            });
+
+            document.querySelectorAll('.add-card-form').forEach(form => form.addEventListener('submit', handleAddCardSubmit));
         });
+
+        function showComposer(listElement) {
+            listElement.querySelector('.add-card-button').style.display = 'none';
+            const composer = listElement.querySelector('.add-card-composer');
+            composer.style.display = 'block';
+            composer.querySelector('textarea').focus();
+        }
+
+        function hideComposer(listElement) {
+            const composer = listElement.querySelector('.add-card-composer');
+            composer.style.display = 'none';
+            composer.querySelector('form').reset();
+            listElement.querySelector('.add-card-button').style.display = 'block';
+        }
+
+        // --- HANDLER FUNCTIONS ---
+        function handleEditListTitle(titleElement) {
+            const currentTitle = titleElement.textContent;
+            const newTitle = prompt("Enter new list title:", currentTitle);
+            if (newTitle && newTitle.trim() !== "" && newTitle.trim() !== currentTitle) {
+                const listId = titleElement.closest('.kanban-list').dataset.listId;
+                fetch(`/lists/${listId}/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle.trim() }) })
+                .then(res => { if(res.ok) { titleElement.textContent = newTitle.trim(); showToast("List updated!"); } else { throw new Error('Failed'); } }).catch(() => showToast("Error updating list", "error"));
+            }
+        }
+
+        function handleDeleteList(listElement) {
+            if (confirm("Delete this list and all its cards?")) {
+                const listId = listElement.dataset.listId;
+                fetch(`/lists/${listId}/delete`, { method: 'POST' })
+                .then(res => { if(res.ok) { listElement.remove(); showToast("List deleted!"); } else { throw new Error('Failed'); } }).catch(() => showToast("Error deleting list", "error"));
+            }
+        }
+
+        function handleEditCard(cardElement) {
+            const descriptionSpan = cardElement.querySelector('.card-description');
+            const currentDescription = descriptionSpan.textContent;
+            const newDescription = prompt("Enter new card description:", currentDescription);
+            if (newDescription && newDescription.trim() !== "" && newDescription.trim() !== currentDescription) {
+                const cardId = cardElement.dataset.cardId;
+                fetch(`/cards/${cardId}/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: newDescription.trim() }) })
+                .then(res => { if(res.ok) { descriptionSpan.textContent = newDescription.trim(); showToast("Card updated!"); } else { throw new Error('Failed'); } }).catch(() => showToast("Error updating card", "error"));
+            }
+        }
+
+        function handleDeleteCard(cardElement) {
+            if (confirm("Delete this card?")) {
+                const cardId = cardElement.dataset.cardId;
+                fetch(`/cards/${cardId}/delete`, { method: 'POST' })
+                .then(res => { if(res.ok) { cardElement.remove(); showToast("Card deleted!"); } else { throw new Error('Failed'); } }).catch(() => showToast("Error deleting card", "error"));
+            }
+        }
+
+        async function handleAddCardSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const textarea = form.querySelector('textarea');
+            const description = textarea.value.trim();
+            if (!description) return;
+            try {
+                const response = await fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description }) });
+                if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'Server error'); }
+                const newCard = await response.json();
+                const newCardElement = createCardElement(newCard);
+                form.closest('.kanban-list').querySelector('.list-cards').appendChild(newCardElement);
+                hideComposer(form.closest('.kanban-list'));
+                showToast("Card added successfully!");
+            } catch (error) {
+                console.error('Failed to add card:', error);
+                showToast(`Could not add card: ${error.message}`, "error");
+            }
+        }
+
+        // --- INITIALIZER & CREATION FUNCTIONS ---
+        function initializeAddListForm() {
+            const addListForm = document.getElementById('add-list-form');
+            if (!addListForm) return;
+            addListForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const form = event.target;
+                const titleInput = form.elements.title;
+                const title = titleInput.value.trim();
+                if (!title) return;
+                try {
+                    const response = await fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title }) });
+                    if (!response.ok) throw new Error('Server error');
+                    const newList = await response.json();
+                    const newListElement = createListElement(newList);
+                    document.querySelector('.kanban-board').insertBefore(newListElement, form.parentElement);
+                    initializeSortableForList(newListElement);
+
+                    // สำคัญ: ผูก Event ให้ฟอร์มสร้าง Card ใน List ใหม่ด้วย
+                    newListElement.querySelector('.add-card-form').addEventListener('submit', handleAddCardSubmit);
+
+                    form.reset();
+                    newListElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
+                } catch (error) {
+                    console.error('Failed to add list:', error);
+                    showToast('Could not add list.', 'error');
+                }
+            });
+        }
+
+        function createListElement(list) {
+            const listDiv = document.createElement('div');
+            listDiv.className = 'kanban-list';
+            listDiv.dataset.listId = list.list_id;
+            listDiv.innerHTML = `
+                <div class="list-header">
+                    <h3 class="list-title">${list.title}</h3>
+                    <button class="list-actions-btn" title="List actions"><i class="fas fa-ellipsis-h"></i></button>
+                </div>
+                <div class="list-cards" data-list-id="${list.list_id}"></div>
+                <div class="add-card-composer">
+                    <form action="/lists/${list.list_id}/cards/create" method="POST" class="add-card-form">
+                        <textarea name="description" placeholder="Enter a title for this card..." required></textarea>
+                        <div class="composer-actions">
+                            <button type="submit" class="add">Add Card</button>
+                            <button type="button" class="cancel">&times;</button>
+                        </div>
+                    </form>
+                </div>
+                <button class="add-card-button"><i class="fas fa-plus"></i> Add a card</button>`;
+            return listDiv;
+        }
+
+        function createCardElement(card) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'kanban-card';
+            cardDiv.dataset.cardId = card.card_id;
+            cardDiv.innerHTML = `
+                <span class="card-description">${card.description}</span>
+                <div class="card-actions">
+                    <button class="card-action-btn edit" title="Edit card"><i class="fas fa-pen"></i></button>
+                    <button class="card-action-btn delete" title="Delete card"><i class="fas fa-trash"></i></button>
+                </div>`;
+            return cardDiv;
+        }
+
+        function initializeSortable() {
+            const cardContainers = document.querySelectorAll('.list-cards');
+            cardContainers.forEach(container => new Sortable(container, sortableOptions));
+        }
+
+        function initializeSortableForList(listElement) {
+            const container = listElement.querySelector('.list-cards');
+            if (container) new Sortable(container, sortableOptions);
+        }
+        
+        const sortableOptions = {
+            group: 'kanban',
+            animation: 150,
+            onEnd: function (evt) {
+                const cardId = evt.item.dataset.cardId;
+                const newListId = evt.to.dataset.listId;
+                fetch(`/cards/${cardId}/move`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ newListId: newListId }),
+                }).then(res => res.json()).then(data => console.log(data.message))
+                  .catch(err => console.error('Error:', err));
+            }
+        };
     </script>
 </body>
 </html>

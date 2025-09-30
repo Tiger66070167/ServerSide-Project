@@ -77,17 +77,17 @@ exports.updateTask = async (req, res) => {
     category_id: category_id || null
   });
 
-  res.redirect('');
+  res.redirect('/');
 };
 
 exports.deleteTask = async (req, res) => {
   await taskModel.deleteTask(req.params.id);
-  res.redirect('');
+  res.redirect('/');
 };
 
 exports.softDeleteTask = async (req, res) => {
   await taskModel.softDeleteTask(req.params.id);
-  res.redirect('');
+  res.redirect('/');
 };
 
 exports.viewarchive = async (req, res) => {
@@ -148,22 +148,46 @@ exports.showKanbanBoard = async (req, res) => {
 
 // 2. สร้าง List ใหม่
 exports.createList = async (req, res) => {
-  const taskId = req.params.id;
-  const { title } = req.body;
-  if (title) {
-    await subtaskModel.createList(title, taskId);
+  try {
+    const taskId = req.params.id;
+    const { title } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    
+    // เราจะต้องแก้ไข model ให้ return list ที่สร้างใหม่กลับมาด้วย
+    const newList = await subtaskModel.createList(title, taskId);
+
+    // แทนที่จะ redirect, เราจะตอบกลับเป็น JSON ของ list ที่สร้างใหม่
+    res.status(201).json(newList); // 201 Created
+
+  } catch (err) {
+    console.error("Error creating list:", err.message);
+    res.status(500).json({ error: 'Failed to create list' });
   }
-  res.redirect(`/${taskId}/board`);
 };
 
 // 3. สร้าง Card ใหม่ใน List
 exports.createCard = async (req, res) => {
-  const { listId } = req.params;
-  const { description, taskId } = req.body;
-  if (description) {
-    await subtaskModel.createCard(description, listId);
+  try {
+    // ⭐️⭐️⭐️ เราจะใช้ listId จาก URL เท่านั้น ⭐️⭐️⭐️
+    const { listId } = req.params; 
+    const { description } = req.body;
+
+    if (!description) {
+      return res.status(400).json({ error: 'Description is required' });
+    }
+
+    // ส่งแค่ description และ listId ไปให้ Model ก็เพียงพอแล้ว
+    const newCard = await subtaskModel.createCard(description, listId);
+
+    res.status(201).json(newCard);
+
+  } catch (err) {
+    console.error("Error creating card:", err.message);
+    res.status(500).json({ error: 'Failed to create card' });
   }
-  res.redirect(`/${taskId}/board`);
 };
 
 // 4. ย้าย Card ไปยัง List อื่น
@@ -177,5 +201,51 @@ exports.moveCard = async (req, res) => {
   } catch (err) {
     console.error("Error moving card:", err.message);
     res.status(500).json({ error: 'Failed to move card' });
+  }
+};
+
+// --- List Management ---
+exports.updateList = async (req, res) => {
+  try {
+    const { listId } = req.params;
+    const { title } = req.body;
+    if (!title) return res.status(400).json({ error: 'Title is required' });
+    await subtaskModel.updateListTitle(listId, title);
+    res.status(200).json({ message: 'List updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update list' });
+  }
+};
+
+exports.deleteList = async (req, res) => {
+  try {
+    const { listId } = req.params;
+    await subtaskModel.deleteList(listId);
+    res.status(200).json({ message: 'List deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete list' });
+  }
+};
+
+// --- Card Management ---
+exports.updateCard = async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    const { description } = req.body;
+    if (!description) return res.status(400).json({ error: 'Description is required' });
+    await subtaskModel.updateCardDescription(cardId, description);
+    res.status(200).json({ message: 'Card updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update card' });
+  }
+};
+
+exports.deleteCard = async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    await subtaskModel.deleteCard(cardId);
+    res.status(200).json({ message: 'Card deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete card' });
   }
 };
