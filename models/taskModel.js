@@ -138,3 +138,7 @@ exports.getCardDetails = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch card details' });
   }
 };
+
+exports.completeTask = async (taskId) => {
+  await db.query("UPDATE tasks SET status = 'completed' WHERE task_id = ?", [taskId]);
+};

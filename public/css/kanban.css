@@ -179,3 +179,80 @@ body {
 .list-actions-menu button.delete {
     color: #dc3545;
 }
+
+/* --- Done State for Cards --- */
+.kanban-card.done {
+    opacity: 0.7;
+    background-color: #f8f9fa; /* สีพื้นหลังจางๆ */
+}
+.kanban-card.done .card-description {
+    text-decoration: line-through;
+    color: #6c757d;
+}
+/* ซ่อนปุ่ม edit/delete และปิดการลากเมื่อ done */
+.kanban-card.done .card-actions {
+    display: none;
+}
+.kanban-card.done {
+    cursor: default;
+}
+
+/* ซ่อนทุกอย่างยกเว้น title เมื่อ list done */
+/* --- Done State for Lists (เวอร์ชันปรับปรุง) --- */
+.kanban-list.done {
+    background-color: #e9ecef; /* สีพื้นหลังที่จางลง */
+    opacity: 0.8;
+}
+
+/* ทำให้ปุ่มต่างๆ ใน header ของ list ใช้งานไม่ได้ */
+.kanban-list.done .list-actions button {
+    pointer-events: none; /* ปิดการคลิก */
+    opacity: 0.5;
+}
+
+/* ทำให้ฟอร์ม Add Card ใช้งานไม่ได้ */
+.kanban-list.done .add-card-composer,
+.kanban-list.done .add-card-button {
+    display: none; /* ซ่อนฟอร์มไปเลย */
+}
+
+/* เพิ่มข้อความ "COMPLETED" เข้าไป */
+.kanban-list.done .list-header::after {
+    content: 'COMPLETED';
+    background-color: #28a745; /* สีเขียว */
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 10px;
+    margin-left: 10px;
+}
+
+.kanban-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+.kanban-header h1 { margin-bottom: 0; }
+
+.complete-task-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    flex-shrink: 0; /* ป้องกันปุ่มหด */
+}
+.complete-task-button:hover:not(:disabled) {
+    background-color: #218838;
+}
+.complete-task-button:disabled {
+    background-color: #a5d6a7;
+    cursor: not-allowed;
+}
+.complete-task-button i { margin-right: 8px; }

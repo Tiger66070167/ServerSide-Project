@@ -6,6 +6,9 @@
   <title>Dashboard</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/modal.css">
+
+  <script src="/js/index.js"></script>
+
 </head>
 <body>
   <%- include('partials/header') %>
@@ -85,30 +88,7 @@
 
   <%- include('partials/footer') %>
 
-  <!-- Modal -->
-  <div id="modalContainer" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <div id="modalContent"></div>
-    </div>
-  </div>
+  <%- include('pop-up/modalContainer.ejs') %>
 
-  <script>
-    async function openModal(url) {
-      const res = await fetch(url);
-      const html = await res.text();
-      document.getElementById('modalContent').innerHTML = html;
-      document.getElementById('modalContainer').style.display = 'block';
-    }
-
-    function closeModal() {
-      document.getElementById('modalContainer').style.display = 'none';
-    }
-
-    window.onclick = function(event) {
-      const modal = document.getElementById('modalContainer');
-      if (event.target === modal) closeModal();
-    }
-  </script>
 </body>
 </html>

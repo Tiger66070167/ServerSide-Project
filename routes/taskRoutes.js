@@ -37,4 +37,9 @@ router.get('/cards/:cardId', taskController.getCardDetails);
 
 router.post('/lists/reorder', taskController.reorderLists);
 
+router.post('/cards/:cardId/toggle', taskController.toggleCardStatus);
+router.post('/lists/:listId/complete', taskController.completeList);
+
+router.post('/:taskId/complete', taskController.completeTask);
+
 module.exports = router;

@@ -277,3 +277,48 @@ exports.reorderLists = async (req, res) => {
   }
 };
 
+exports.toggleCardStatus = async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    await subtaskModel.toggleCardStatus(cardId);
+    // ตอบกลับข้อมูล card ที่อัปเดตแล้ว (เพื่อดึงสถานะ is_done ใหม่)
+    const updatedCard = await subtaskModel.getCardById(cardId);
+    res.status(200).json(updatedCard);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to toggle card status' });
+  }
+};
+
+exports.completeList = async (req, res) => {
+  try {
+    const { listId } = req.params;
+    // ตรวจสอบก่อนว่ามี card เหลืออยู่ไหม
+    const remainingCards = await subtaskModel.getRemainingCardsInList(listId);
+    if (remainingCards.length > 0) {
+      return res.status(400).json({ error: 'Cannot complete list: some cards are still remaining.' });
+    }
+    await subtaskModel.completeList(listId);
+    res.status(200).json({ message: 'List completed successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to complete list' });
+  }
+};
+
+exports.completeTask = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+
+    // ตรวจสอบฝั่งเซิร์ฟเวอร์ว่ามี list เหลืออยู่หรือไม่
+    const remainingLists = await subtaskModel.getRemainingListsInTask(taskId);
+    if (remainingLists.length > 0) {
+      return res.status(400).json({ error: 'Cannot complete task: some lists are still remaining.' });
+    }
+
+    await taskModel.completeTask(taskId);
+    res.status(200).json({ message: 'Task completed successfully' });
+
+  } catch (err) {
+    console.error("Error completing task:", err.message);
+    res.status(500).json({ error: 'Failed to complete task' });
+  }
+};

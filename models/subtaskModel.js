@@ -81,3 +81,22 @@ exports.updateListOrder = async (listOrder) => {
   });
   await Promise.all(promises);
 };
+
+exports.toggleCardStatus = async (cardId) => {
+  await db.query('UPDATE subtask_cards SET is_done = !is_done WHERE card_id = ?', [cardId]);
+};
+
+exports.completeList = async (listId) => {
+  await db.query('UPDATE subtask_lists SET is_done = TRUE WHERE list_id = ?', [listId]);
+};
+
+// ใช้สำหรับตรวจสอบก่อนที่จะ complete list
+exports.getRemainingCardsInList = async (listId) => {
+  const [rows] = await db.query('SELECT card_id FROM subtask_cards WHERE list_id = ? AND is_done = FALSE', [listId]);
+  return rows;
+};
+
+exports.getRemainingListsInTask = async (taskId) => {
+  const [rows] = await db.query('SELECT list_id FROM subtask_lists WHERE task_id = ? AND is_done = FALSE', [taskId]);
+  return rows;
+};

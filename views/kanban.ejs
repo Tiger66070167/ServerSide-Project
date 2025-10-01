@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="/css/kanban.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <script src="/js/kanban.js"></script>
     
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -18,7 +20,20 @@
 
     <div class="kanban-container">
         <div class="kanban-header">
-            <h1><%= task.title %></h1>
+            <div class="kanban-header-top">
+                <h1><%= task.title %></h1>
+
+                <% const allListsDone = lists.every(list => list.is_done === 1); %>
+                <button 
+                    id="complete-task-btn" 
+                    class="complete-task-button"
+                    <%= !allListsDone ? 'disabled' : '' %>
+                >
+                    <i class="fas fa-check-double"></i> Complete Task
+                </button>
+            </div>
+            
+            <!-- Metadata Section --> 
             <p class="task-description"><%= task.description || 'No description provided.' %></p>
             <div class="kanban-meta">
                 <span><i class="fas fa-plus-circle"></i> Created: <%= new Date(task.created_at).toLocaleDateString() %></span>
@@ -31,10 +46,24 @@
 
         <div class="kanban-board">
             <% lists.forEach(list => { %>
-                <div class="kanban-list" data-list-id="<%= list.list_id %>">
+                <div class="kanban-list <%= list.is_done === 1 ? 'done' : '' %>" data-list-id="<%= list.list_id %>">
                     <div class="list-header">
                         <h3 class="list-title"><%= list.title %></h3>
                         <div class="list-actions">
+                            
+                            <% const doneCardsCount = list.cards.filter(card => card.is_done === 1).length; %>
+                            <% const allCardsDone = list.cards.length > 0 && doneCardsCount === list.cards.length; %>
+
+                            <!-- ปุ่ม Complete List -->
+                            <button 
+                                class="complete-list-btn" 
+                                title="Mark list as done"
+                                <%= !allCardsDone ? 'disabled' : '' %>
+                                >
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+
+                            <!-- ปุ่ม Dropdown Menu -->
                             <button class="list-actions-btn" title="List actions"><i class="fas fa-ellipsis-h"></i></button>
                             <!-- Dropdown Menu ที่ซ่อนอยู่ -->
                             <div class="list-actions-menu">
@@ -46,8 +75,19 @@
 
                     <div class="list-cards" data-list-id="<%= list.list_id %>">
                         <% list.cards.forEach(card => { %>
-                            <div class="kanban-card" data-card-id="<%= card.card_id %>">
+                            <div 
+                                class="kanban-card <%= card.is_done === 1 ? 'done' : '' %>" 
+                                data-card-id="<%= card.card_id %>"
+                            >
+                                <!-- Card Toggle Status -->
+                                <button class="card-toggle-btn" title="Toggle status">
+                                    <i class="far <%= card.is_done === 1 ? 'fa-check-square' : 'fa-square' %>"></i>
+                                </button>
+
+                                <!-- Card Description -->
                                 <span class="card-description"><%= card.description %></span>
+                                
+                                <!-- Card Actions -->
                                 <div class="card-actions">
                                     <button class="card-action-btn edit" title="Edit card"><i class="fas fa-pen"></i></button>
                                     <button class="card-action-btn delete" title="Delete card"><i class="fas fa-trash"></i></button>
@@ -79,392 +119,7 @@
     
     <%- include('partials/footer') %>
 
-    <div id="modalContainer" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <div id="modalContent"></div>
-        </div>
-    </div>
-
-    <!-- ============================================= -->
-    <!-- JAVASCRIPT FOR DYNAMIC ACTIONS                -->
-    <!-- ============================================= -->
-
-    <script>
-
-        // ==============================================
-        // MODAL HANDLING
-        // ==============================================
-        function openModal() {
-            document.getElementById('modalContainer').style.display = 'block';
-        }
-
-        function closeModal() {
-            document.getElementById('modalContainer').style.display = 'none';
-            document.getElementById('modalContent').innerHTML = ''; // Clear content on close
-        }
-
-        // ==============================================
-        // MAIN JAVASCRIPT LOGIC
-        // ==============================================
-        document.addEventListener('DOMContentLoaded', () => {
-
-            // ==================================================
-            // SECTION 0: GLOBAL VARIABLES & CONFIGURATION
-            // ==================================================
-            const sortableOptions = {
-                group: 'kanban',
-                animation: 150,
-                onEnd: function (evt) {
-                    const cardId = evt.item.dataset.cardId;
-                    const newListId = evt.to.dataset.listId;
-                    fetch(`/cards/${cardId}/move`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ newListId: newListId }),
-                    }).then(res => res.json()).then(data => console.log(data.message))
-                    .catch(err => console.error('Error:', err));
-                }
-            };
-
-            // ⭐️⭐️⭐️ ตัวแปร Global สำหรับ "จำ" Element ที่กำลังแก้ไข ⭐️⭐️⭐️
-            let currentlyEditingElement = null;
-
-
-            // ==================================================
-            // SECTION 1: EVENT LISTENERS INITIALIZATION
-            // ==================================================
-            initializeAllEventListeners();
-            initializeSortable();
-
-
-            // ==================================================
-            // SECTION 3: DOM MANIPULATION & HELPERS
-            // ==================================================
-            function showToast(message, type = 'success') {
-                Toastify({
-                    text: message,
-                    duration: 3000,
-                    close: true,
-                    gravity: "top",
-                    position: "right",
-                    stopOnFocus: true,
-                    style: {
-                        background: type === 'success' ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)",
-                    },
-                }).showToast();
-            }
-
-            function showComposer(listElement) {
-                listElement.querySelector('.add-card-button').style.display = 'none';
-                const composer = listElement.querySelector('.add-card-composer');
-                composer.style.display = 'block';
-                composer.querySelector('textarea').focus();
-            }
-
-            function hideComposer(listElement) {
-                const composer = listElement.querySelector('.add-card-composer');
-                composer.style.display = 'none';
-                composer.querySelector('form').reset();
-                listElement.querySelector('.add-card-button').style.display = 'block';
-            }
-
-            function createListElement(list) {
-                const listDiv = document.createElement('div');
-                listDiv.className = 'kanban-list';
-                listDiv.dataset.listId = list.list_id;
-                listDiv.innerHTML = `
-                    <div class="list-header">
-                        <h3 class="list-title">${list.title}</h3>
-                        <button class="list-actions-btn" title="List actions"><i class="fas fa-ellipsis-h"></i></button>
-                    </div>
-                    <div class="list-cards" data-list-id="${list.list_id}"></div>
-                    <div class="add-card-composer">
-                        <form action="/lists/${list.list_id}/cards/create" method="POST" class="add-card-form">
-                            <textarea name="description" placeholder="Enter a title for this card..." required></textarea>
-                            <div class="composer-actions">
-                                <button type="submit" class="add">Add Card</button>
-                                <button type="button" class="cancel">&times;</button>
-                            </div>
-                        </form>
-                    </div>
-                    <button class="add-card-button"><i class="fas fa-plus"></i> Add a card</button>`;
-                return listDiv;
-            }
-
-            function createCardElement(card) {
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'kanban-card';
-                cardDiv.dataset.cardId = card.card_id;
-                cardDiv.innerHTML = `
-                    <span class="card-description">${card.description}</span>
-                    <div class="card-actions">
-                        <button class="card-action-btn edit" title="Edit card"><i class="fas fa-pen"></i></button>
-                        <button class="card-action-btn delete" title="Delete card"><i class="fas fa-trash"></i></button>
-                    </div>`;
-                return cardDiv;
-            }
-
-            function createEditCardFormHtml(card) {
-                return `
-                    <h3>Edit Card</h3>
-                    <form id="edit-card-form" action="/cards/${card.card_id}/update" method="POST">
-                        <label for="card-description">Description:</label>
-                        <textarea id="card-description" name="description" required>${card.description}</textarea>
-                        <button type="submit">Update Card</button>
-                    </form>
-                `;
-            }
-
-            function createEditListFormHtml(list) {
-            return `
-                <h3>Edit List Title</h3>
-                <form id="edit-list-form" action="/lists/${list.dataset.listId}/update" method="POST">
-                    <label for="list-title">Title:</label>
-                    <input type="text" id="list-title" name="title" value="${list.querySelector('.list-title').textContent}" required>
-                    <button type="submit">Update Title</button>
-                </form>
-            `;
-            }
-
-            // ===================================================
-            // SECTION --: SORTABLE INITIALIZATION
-            // ===================================================
-            const boardContainer = document.querySelector('.kanban-board');
-            new Sortable(boardContainer, {
-                animation: 150,
-                handle: '.list-header', // ทำให้ลากได้เฉพาะตอนจับที่ header
-                onEnd: function(evt) {
-                    const listElements = Array.from(boardContainer.querySelectorAll('.kanban-list:not(.add-new-list)'));
-                    const listIds = listElements.map(el => el.dataset.listId);
-                    
-                    // ส่งลำดับใหม่ไปที่ Server
-                    fetch('/lists/reorder', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ listIds: listIds })
-                    })
-                    .then(res => res.json())
-                    .then(data => console.log(data.message))
-                    .catch(err => showToast('Failed to save new order', 'error'));
-                }
-            });
-
-            // ==================================================
-            // SECTION 4: EVENT HANDLERS (LOGIC)
-            // ==================================================
-            function initializeAllEventListeners() {
-                const board = document.querySelector('.kanban-board');
-
-                // Main Event Delegation for the board
-                board.addEventListener('click', (event) => {
-                    const target = event.target;
-                    if (target.closest('.add-card-button')) { showComposer(target.closest('.kanban-list')); }
-                    if (target.closest('.add-card-composer .cancel')) { hideComposer(target.closest('.kanban-list')); }
-
-                    if (target.closest('.card-action-btn.edit')) { handleOpenEditCardModal(target.closest('.kanban-card')); }
-                    if (target.closest('.card-action-btn.delete')) { handleDeleteCard(target.closest('.kanban-card')); }
-                    
-                    // Logic ใหม่สำหรับเมนู List Actions
-                    if (target.closest('.list-actions-btn')) {
-                        const menu = target.closest('.list-actions').querySelector('.list-actions-menu');
-                        closeAllListMenus(menu); // ปิดเมนูอื่นก่อน
-                        menu.classList.toggle('show');
-                    } else if (target.closest('.edit-list-btn')) {
-                        handleOpenEditListModal(target.closest('.kanban-list')); // <-- เรียกฟังก์ชัน Modal ใหม่
-                        closeAllListMenus();
-                    } else if (target.closest('.delete-list-btn')) {
-                        handleDeleteList(target.closest('.kanban-list'));
-                        closeAllListMenus();
-                    } else if (!target.closest('.list-actions-menu')) {
-                        // ถ้าคลิกนอกเมนู ให้ปิดเมนูทั้งหมด
-                        closeAllListMenus();
-                    }
-                });
-
-                // ฟังก์ชันสำหรับปิดเมนูทั้งหมด (เพื่อไม่ให้เปิดค้าง)
-                function closeAllListMenus(exceptMenu = null) {
-                    document.querySelectorAll('.list-actions-menu.show').forEach(menu => {
-                        if (menu !== exceptMenu) {
-                            menu.classList.remove('show');
-                        }
-                    });
-                }
-
-                // Initial setup for existing forms
-                document.querySelectorAll('.add-card-form').forEach(form => form.addEventListener('submit', handleAddCardSubmit));
-                document.getElementById('add-list-form')?.addEventListener('submit', handleAddListSubmit);
-
-                // Listener to close modal on outside click
-                window.onclick = (event) => {
-                    if (event.target === document.getElementById('modalContainer')) { closeModal(); }
-                };
-            }
-
-            async function handleOpenEditCardModal(cardElement) {
-                const cardId = cardElement.dataset.cardId;
-                const modalContent = document.getElementById('modalContent');
-
-                currentlyEditingElement = cardElement.querySelector('.card-description');
-
-                modalContent.innerHTML = '<h3>Loading...</h3>';
-                openModal();
-                try {
-                    const response = await fetch(`/cards/${cardId}`);
-                    if (!response.ok) throw new Error('Card not found');
-                    const cardData = await response.json();
-                    modalContent.innerHTML = createEditCardFormHtml(cardData);
-                    document.getElementById('edit-card-form').addEventListener('submit', handleUpdateCardSubmit);
-                } catch (error) {
-                    showToast(error.message, 'error');
-                    closeModal();
-                }
-            }
-
-            async function handleUpdateCardSubmit(event) {
-                event.preventDefault();
-                const form = event.target;
-                const description = form.elements.description.value.trim();
-                const cardId = form.action.split('/')[2];
-                if (!description) return;
-                try {
-                    const response = await fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description }) });
-                    if (!response.ok) throw new Error('Failed to update card on server');
-
-                    // ⭐️⭐️⭐️ อัปเดต Element ที่ "จำ" ไว้โดยตรง ⭐️⭐️⭐️
-                    if (currentlyEditingElement) {
-                        currentlyEditingElement.textContent = description;
-                    }
-
-                    closeModal();
-                    showToast("Card updated successfully!");
-                } catch (error) {
-                    showToast(error.message, 'error');
-                }
-            }
-
-            async function handleAddListSubmit(event) {
-                event.preventDefault();
-                const form = event.target;
-                const titleInput = form.elements.title;
-                const title = titleInput.value.trim();
-                if (!title) return;
-                try {
-                    const response = await fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title }) });
-                    if (!response.ok) throw new Error('Server error');
-                    const newList = await response.json();
-                    const newListElement = createListElement(newList);
-                    document.querySelector('.kanban-board').insertBefore(newListElement, form.parentElement);
-                    initializeSortableForList(newListElement);
-                    newListElement.querySelector('.add-card-form').addEventListener('submit', handleAddCardSubmit);
-                    form.reset();
-                    newListElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
-                } catch (error) {
-                    console.error('Failed to add list:', error);
-                    showToast('Could not add list.', 'error');
-                }
-            }
-            
-            async function handleAddCardSubmit(event) {
-                event.preventDefault();
-                const form = event.target;
-                const textarea = form.querySelector('textarea');
-                const description = textarea.value.trim();
-                if (!description) return;
-                try {
-                    const response = await fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description }) });
-                    if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'Server error'); }
-                    const newCard = await response.json();
-                    const newCardElement = createCardElement(newCard);
-                    form.closest('.kanban-list').querySelector('.list-cards').appendChild(newCardElement);
-                    hideComposer(form.closest('.kanban-list'));
-                    showToast("Card added successfully!");
-                } catch (error) {
-                    console.error('Failed to add card:', error);
-                    showToast(`Could not add card: ${error.message}`, "error");
-                }
-            }
-
-            // ⭐️⭐️⭐️ 3. สร้างฟังก์ชันใหม่สำหรับเปิด Modal แก้ไข List ⭐️⭐️⭐️
-            function handleOpenEditListModal(listElement) {
-                const modalContent = document.getElementById('modalContent');
-                const titleElement = listElement.querySelector('.list-title');
-
-                // ⭐️⭐️⭐️ "จำ" h3 ที่เก็บ title ไว้ ⭐️⭐️⭐️
-                currentlyEditingElement = titleElement;
-                const currentTitle = titleElement.textContent;
-                
-                // สร้าง HTML ของฟอร์มโดยส่ง listElement เข้าไป
-                modalContent.innerHTML = createEditListFormHtml(listElement);
-                openModal();
-
-                // เพิ่ม Event Listener ให้กับฟอร์มที่เพิ่งสร้าง
-                document.getElementById('edit-list-form').addEventListener('submit', handleUpdateListSubmit);
-            }
-
-            // ⭐️⭐️⭐️ 4. สร้างฟังก์ชันใหม่สำหรับจัดการการ Update List ⭐️⭐️⭐️
-            async function handleUpdateListSubmit(event) {
-                event.preventDefault();
-                const form = event.target;
-                const newTitle = form.elements.title.value.trim();
-                const listId = form.action.split('/')[2];
-                
-                if (!newTitle) return;
-
-                try {
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title: newTitle })
-                    });
-
-                    if (!response.ok) throw new Error('Failed to update list');
-
-                    // ⭐️⭐️⭐️ อัปเดต Element ที่ "จำ" ไว้โดยตรง ⭐️⭐️⭐️
-                    if (currentlyEditingElement) {
-                        currentlyEditingElement.textContent = newTitle;
-                    }
-
-                    closeModal();
-                    showToast("List title updated successfully!");
-
-                } catch (error) {
-                    showToast(error.message, 'error');
-                }
-            }
-
-            function handleDeleteList(listElement) {
-                if (confirm("Delete this list and all its cards?")) {
-                    const listId = listElement.dataset.listId;
-                    fetch(`/lists/${listId}/delete`, { method: 'POST' })
-                    .then(res => { if(res.ok) { listElement.remove(); showToast("List deleted!"); } else { throw new Error('Failed'); } }).catch(() => showToast("Error deleting list", "error"));
-                }
-            }
-
-            function handleDeleteCard(cardElement) {
-                if (confirm("Delete this card?")) {
-                    const cardId = cardElement.dataset.cardId;
-                    fetch(`/cards/${cardId}/delete`, { method: 'POST' })
-                    .then(res => { if(res.ok) { cardElement.remove(); showToast("Card deleted!"); } else { throw new Error('Failed'); } }).catch(() => showToast("Error deleting card", "error"));
-                }
-            }
-
-            // ==================================================
-            // SECTION 5: JS INITIALIZATION
-            // ==================================================
-            
-            function initializeSortable() {
-                const cardContainers = document.querySelectorAll('.list-cards');
-                cardContainers.forEach(container => new Sortable(container, sortableOptions));
-            }
-
-            function initializeSortableForList(listElement) {
-                const container = listElement.querySelector('.list-cards');
-                if (container) new Sortable(container, sortableOptions);
-            }
-
-        });
-    </script>
+    <%- include('pop-up/modalContainer.ejs') %>
 
 </body>
 </html>
