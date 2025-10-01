@@ -19,102 +19,158 @@
     <%- include('partials/header') %>
 
     <div class="kanban-container">
+        <a href="/" class="dashboard-link">← Back to All Tasks</a>
         <div class="kanban-header">
+            <!-- แถวบนสุด: Title และปุ่ม Actions หลัก -->
             <div class="kanban-header-top">
                 <h1><%= task.title %></h1>
-
-                <% const allListsDone = lists.every(list => list.is_done === 1); %>
-                <button 
-                    id="complete-task-btn" 
-                    class="complete-task-button"
-                    <%= !allListsDone ? 'disabled' : '' %>
-                >
-                    <i class="fas fa-check-double"></i> Complete Task
-                </button>
+                <div class="kanban-main-actions">
+                    <button id="edit-task-btn" class="icon-button" title="Edit Task Details"><i class="fas fa-cog"></i></button>
+                    
+                    <% const allListsDone = lists.every(list => list.is_done === 1); %>
+                    <button 
+                        id="complete-task-btn" 
+                        class="complete-task-button"
+                        <%= !allListsDone ? 'disabled' : '' %>
+                    >
+                        <i class="fas fa-check-double"></i> Complete Task
+                    </button>
+                </div>
             </div>
             
-            <!-- Metadata Section --> 
+            <!-- คำอธิบาย Task -->
             <p class="task-description"><%= task.description || 'No description provided.' %></p>
+            
+            <!-- แถบข้อมูลสรุป และ Quick Actions (รวมไว้ที่เดียวกัน) -->
             <div class="kanban-meta">
-                <span><i class="fas fa-plus-circle"></i> Created: <%= new Date(task.created_at).toLocaleDateString() %></span>
-                <span><i class="fas fa-calendar-alt"></i> Due: <%= task.due_date ? new Date(task.due_date).toLocaleDateString() : 'None' %></span>
-                <span><i class="fas fa-flag"></i> Priority: <%= task.priority || 'N/A' %></span>
-                <span><i class="fas fa-columns"></i> Lists: <%= lists.length %></span>
+                <!-- Progress Tracker -->
+                <div id="list-progress-tracker" class="progress-tracker">
+                    <% const totalLists = lists.length; %>
+                    <% const doneLists = lists.filter(l => l.is_done === 1).length; %>
+                    <i class="fas fa-check-square"></i>
+                    <span id="done-lists-count"><%= doneLists %></span> / 
+                    <span id="total-lists-count"><%= totalLists %></span> Lists
+                </div>
+
+                <!-- Quick Action: Priority -->
+                <div class="quick-action">
+                    <label for="quick-priority"><i class="fas fa-flag"></i></label>
+                    <select id="quick-priority" name="priority" title="Change Priority">
+                        <% ['low', 'medium', 'high'].forEach(p => { %>
+                            <option value="<%= p %>" <%= task.priority === p ? 'selected' : '' %>><%= p.charAt(0).toUpperCase() + p.slice(1) %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <!-- Quick Action: Category -->
+                <div class="quick-action">
+                    <label for="quick-category"><i class="fas fa-tags"></i></label>
+                    <select id="quick-category" name="category_id" title="Change Category">
+                        <option value="">-- None --</option>
+                        <% categories.forEach(cat => { %>
+                            <option value="<%= cat.category_id %>" <%= task.category_id == cat.category_id ? 'selected' : '' %>><%= cat.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                
+                <!-- Metadata: Due Date -->
+                <span class="meta-item" title="Due Date">
+                    <i class="fas fa-calendar-alt"></i> 
+                    <%= task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No Due Date' %>
+                </span>
             </div>
-            <a href="/" class="dashboard-link">← Back to All Tasks</a>
+
+            <!-- แถวล่างสุด: Search และ ลิงก์กลับ -->
+            <div class="kanban-header-bottom">
+                <div class="kanban-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="list-search-input" placeholder="Search lists...">
+                </div>
+            </div>
         </div>
 
-        <div class="kanban-board">
-            <% lists.forEach(list => { %>
-                <div class="kanban-list <%= list.is_done === 1 ? 'done' : '' %>" data-list-id="<%= list.list_id %>">
-                    <div class="list-header">
-                        <h3 class="list-title"><%= list.title %></h3>
-                        <div class="list-actions">
-                            
-                            <% const doneCardsCount = list.cards.filter(card => card.is_done === 1).length; %>
-                            <% const allCardsDone = list.cards.length > 0 && doneCardsCount === list.cards.length; %>
+        <div class="kanban-board-wrapper">
+            <div class="kanban-board">
 
-                            <!-- ปุ่ม Complete List -->
-                            <button 
-                                class="complete-list-btn" 
-                                title="Mark list as done"
-                                <%= !allCardsDone ? 'disabled' : '' %>
-                                >
-                                <i class="fas fa-check-circle"></i>
-                            </button>
+                <!-- No Results Message -->
+                <div id="no-results-message" style="display: none;">
+                    <h3>No lists found</h3>
+                    <p>No lists match your search criteria.</p>
+                </div>
 
-                            <!-- ปุ่ม Dropdown Menu -->
-                            <button class="list-actions-btn" title="List actions"><i class="fas fa-ellipsis-h"></i></button>
-                            <!-- Dropdown Menu ที่ซ่อนอยู่ -->
-                            <div class="list-actions-menu">
-                                <button class="edit-list-btn">Edit Title</button>
-                                <button class="delete-list-btn delete">Delete List</button>
-                            </div>
-                        </div>
-                    </div>
+                <!-- โค้ด Loop แสดง Lists -->
+                <% lists.forEach(list => { %>
+                    <div class="kanban-list <%= list.is_done === 1 ? 'done' : '' %>" data-list-id="<%= list.list_id %>">
+                        <div class="list-header">
+                            <h3 class="list-title"><%= list.title %></h3>
+                            <div class="list-actions">
+                                
+                                <% const doneCardsCount = list.cards.filter(card => card.is_done === 1).length; %>
+                                <% const allCardsDone = list.cards.length > 0 && doneCardsCount === list.cards.length; %>
 
-                    <div class="list-cards" data-list-id="<%= list.list_id %>">
-                        <% list.cards.forEach(card => { %>
-                            <div 
-                                class="kanban-card <%= card.is_done === 1 ? 'done' : '' %>" 
-                                data-card-id="<%= card.card_id %>"
-                            >
-                                <!-- Card Toggle Status -->
-                                <button class="card-toggle-btn" title="Toggle status">
-                                    <i class="far <%= card.is_done === 1 ? 'fa-check-square' : 'fa-square' %>"></i>
+                                <!-- ปุ่ม Complete List -->
+                                <button 
+                                    class="complete-list-btn" 
+                                    title="Mark list as done"
+                                    <%= !allCardsDone ? 'disabled' : '' %>
+                                    >
+                                    <i class="fas fa-check-circle"></i>
                                 </button>
 
-                                <!-- Card Description -->
-                                <span class="card-description"><%= card.description %></span>
-                                
-                                <!-- Card Actions -->
-                                <div class="card-actions">
-                                    <button class="card-action-btn edit" title="Edit card"><i class="fas fa-pen"></i></button>
-                                    <button class="card-action-btn delete" title="Delete card"><i class="fas fa-trash"></i></button>
+                                <!-- ปุ่ม Dropdown Menu -->
+                                <button class="list-actions-btn" title="List actions"><i class="fas fa-ellipsis-h"></i></button>
+                                <!-- Dropdown Menu ที่ซ่อนอยู่ -->
+                                <div class="list-actions-menu">
+                                    <button class="edit-list-btn">Edit Title</button>
+                                    <button class="delete-list-btn delete">Delete List</button>
                                 </div>
                             </div>
-                        <% }) %>
+                        </div>
+
+                        <div class="list-cards" data-list-id="<%= list.list_id %>">
+                            <% list.cards.forEach(card => { %>
+                                <div 
+                                    class="kanban-card <%= card.is_done === 1 ? 'done' : '' %>" 
+                                    data-card-id="<%= card.card_id %>"
+                                >
+                                    <!-- Card Toggle Status -->
+                                    <button class="card-toggle-btn" title="Toggle status">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+
+                                    <!-- Card Description -->
+                                    <span class="card-description"><%= card.description %></span>
+                                    
+                                    <!-- Card Actions -->
+                                    <div class="card-actions">
+                                        <button class="card-action-btn edit" title="Edit card"><i class="fas fa-pen"></i></button>
+                                        <button class="card-action-btn delete" title="Delete card"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                        <div class="add-card-composer">
+                            <form action="/lists/<%= list.list_id %>/cards/create" method="POST" class="add-card-form">
+                                <textarea name="description" placeholder="Enter a title for this card..." required></textarea>
+                                <div class="composer-actions">
+                                    <button type="submit" class="add">Add Card</button>
+                                    <button type="button" class="cancel">&times;</button>
+                                </div>
+                            </form>
+                        </div>
+                        <button class="add-card-button"><i class="fas fa-plus"></i> Add a card</button>
                     </div>
-                    <div class="add-card-composer">
-                        <form action="/lists/<%= list.list_id %>/cards/create" method="POST" class="add-card-form">
-                            <textarea name="description" placeholder="Enter a title for this card..." required></textarea>
-                            <div class="composer-actions">
-                                <button type="submit" class="add">Add Card</button>
-                                <button type="button" class="cancel">&times;</button>
-                            </div>
-                        </form>
-                    </div>
-                    <button class="add-card-button"><i class="fas fa-plus"></i> Add a card</button>
+                <% }) %>
+                
+                <div class="kanban-list add-new-list">
+                    <form id="add-list-form" action="/<%= task.task_id %>/lists/create" method="POST">
+                        <input type="text" name="title" placeholder="+ Add another list" required autocomplete="off">
+                        <button type="submit">Add List</button>
+                    </form>
                 </div>
-            <% }) %>
-            
-            <div class="kanban-list add-new-list">
-                <form id="add-list-form" action="/<%= task.task_id %>/lists/create" method="POST">
-                    <input type="text" name="title" placeholder="+ Add another list" required autocomplete="off">
-                    <button type="submit">Add List</button>
-                </form>
             </div>
         </div>
+
     </div>
     
     <%- include('partials/footer') %>

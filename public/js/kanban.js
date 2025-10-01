@@ -88,10 +88,13 @@
             <div class="list-header">
                 <h3 class="list-title">${list.title}</h3>
                 <div class="list-actions">
+                    <button class="complete-list-btn" title="Mark list as done" disabled>
+                        <i class="fas fa-check-circle"></i>
+                    </button>
                     <button class="list-actions-btn" title="List actions"><i class="fas fa-ellipsis-h"></i></button>
                     <div class="list-actions-menu">
-                        <button class="edit-list-btn">Edit</button>
-                        <button class="delete-list-btn">Delete</button>
+                        <button class="edit-list-btn">Edit Title</button>
+                        <button class="delete-list-btn delete">Delete List</button>
                     </div>
                 </div>
             </div>
@@ -114,7 +117,7 @@
         cardDiv.className = 'kanban-card';
         cardDiv.dataset.cardId = card.card_id;
         cardDiv.innerHTML = `
-            <button class="card-toggle-btn" title="Toggle status"><i class="far fa-square"></i></button>
+            <button class="card-toggle-btn" title="Toggle status"><i class="fas fa-check"></i></button>
             <span class="card-description">${card.description}</span>
             <div class="card-actions">
                 <button class="card-action-btn edit" title="Edit card"><i class="fas fa-pen"></i></button>
@@ -319,34 +322,18 @@
     async function handleToggleCardStatus(cardElement) {
             const cardId = cardElement.dataset.cardId;
 
-            // Debug log
-            console.log(`Toggling status for card ID: ${cardId}`);
-
             try {
                 const response = await fetch(`/cards/${cardId}/toggle`, { method: 'POST' });
-                
-                // Debug log
-                console.log('Server response:', response.status);
-
                 if (!response.ok) throw new Error('Failed to update status');
+                
                 const updatedCard = await response.json();
 
-                // Debug log
-                console.log('Received updated card data:', updatedCard);
-
-                // อัปเดต UI
-                const icon = cardElement.querySelector('.card-toggle-btn i');
                 if (updatedCard.is_done) {
                     cardElement.classList.add('done');
-                    icon.classList.remove('fa-square');
-                    icon.classList.add('fa-check-square');
                 } else {
                     cardElement.classList.remove('done');
-                    icon.classList.add('fa-square');
-                    icon.classList.remove('fa-check-square');
                 }
 
-                // ตรวจสอบสถานะ List ทุกครั้งที่ Card เปลี่ยน
                 checkListCompletion(cardElement.closest('.kanban-list'));
 
             } catch (error) {
@@ -368,6 +355,7 @@
                 listElement.classList.add('done');
                 showToast('List completed!');
 
+                updateProgressTracker();
                 checkTaskCompletion();
 
             } catch (error) {
@@ -375,7 +363,60 @@
             }
         }
 
-            async function handleCompleteTask() {
+        // ฟังก์ชันสำหรับอัปเดตตัวเลข Progress
+        function updateProgressTracker() {
+            const doneCountEl = document.getElementById('done-lists-count');
+            const doneLists = document.querySelectorAll('.kanban-list.done').length;
+            if (doneCountEl) {
+                doneCountEl.textContent = doneLists;
+            }
+        }
+
+        // ฟังก์ชันสำหรับเปิด Modal แก้ไข Task
+        async function handleOpenEditTaskModal() {
+            const taskId = window.location.pathname.split('/')[1];
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = '<h3>Loading...</h3>';
+            openModal();
+            try {
+                // ยิงไปที่ API เดิมเพื่อดึง HTML ของฟอร์ม
+                const response = await fetch(`/edit/${taskId}`);
+                if (!response.ok) throw new Error('Could not load edit form');
+                const formHtml = await response.text();
+                modalContent.innerHTML = formHtml;
+            } catch (error) {
+                showToast(error.message, 'error');
+                closeModal();
+            }
+        }
+
+        // ฟังก์ชันสำหรับจัดการ Quick Actions
+        async function handleQuickActionChange(event) {
+            const selectElement = event.target;
+            const fieldName = selectElement.name;
+            const value = selectElement.value;
+            const taskId = window.location.pathname.split('/')[1];
+
+            const updateData = {};
+            updateData[fieldName] = value; // สร้าง object เช่น { priority: 'high' }
+
+            try {
+                const response = await fetch(`/update/${taskId}`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest' // <-- ส่ง Header พิเศษ
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                if (!response.ok) throw new Error('Failed to update');
+                showToast(`Task ${fieldName} updated successfully!`);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+        
+        async function handleCompleteTask() {
         if (!confirm('Are you sure you want to complete the entire task? This will archive the task.')) return;
 
         // ดึง taskId จาก URL ของหน้า (วิธีที่ไม่ต้องใช้ EJS)
@@ -553,7 +594,47 @@
         document.querySelectorAll('.add-card-form').forEach(form => form.addEventListener('submit', handleAddCardSubmit));
         document.getElementById('add-list-form')?.addEventListener('submit', handleAddListSubmit);
         document.getElementById('complete-task-btn')?.addEventListener('click', handleCompleteTask);
+        
+        // Listener สำหรับปุ่ม Detailed Edit
+        document.getElementById('edit-task-btn')?.addEventListener('click', handleOpenEditTaskModal);
 
+        // Listeners สำหรับ Quick Actions
+        document.getElementById('quick-priority')?.addEventListener('change', handleQuickActionChange);
+        document.getElementById('quick-category')?.addEventListener('change', handleQuickActionChange);
+    };
+
+    const initializeSearch = () => {
+        const searchInput = document.getElementById('list-search-input');
+        if (!searchInput) return;
+
+        // (ไม่ต้องประกาศ allLists ตรงนี้แล้ว)
+        const noResultsMessage = document.getElementById('no-results-message');
+
+        searchInput.addEventListener('input', () => {
+            // ⭐️⭐️⭐️ ค้นหา List ทั้งหมดใหม่ทุกครั้งที่พิมพ์ ⭐️⭐️⭐️
+            const allLists = document.querySelectorAll('.kanban-list:not(.add-new-list)');
+            
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            let visibleCount = 0;
+
+            allLists.forEach(list => {
+                const listTitle = list.querySelector('.list-title').textContent.trim().toLowerCase();
+                
+                if (listTitle.includes(searchTerm)) {
+                    list.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    list.style.display = 'none';
+                }
+            });
+
+            // แสดง/ซ่อน ข้อความ "No results"
+            if (visibleCount === 0 && searchTerm !== '') {
+                noResultsMessage.style.display = 'block';
+            } else {
+                noResultsMessage.style.display = 'none';
+            }
+        });
     };
 
     // ==================================================
@@ -563,6 +644,8 @@
         initializeAllEventListeners();
         initializeBoardSortable();
         initializeSortable();
+        initializeSearch();
+        
         // Initial Check on Load for "Complete List" buttons
         document.querySelectorAll('.kanban-list').forEach(list => checkListCompletion(list));
         checkTaskCompletion();

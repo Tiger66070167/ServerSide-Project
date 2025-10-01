@@ -85,3 +85,27 @@
 #modalContent button[type="submit"]:hover {
     background-color: #e67e00;
 }
+
+/* /css/modal.css (เพิ่มต่อท้าย) */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end; /* จัดปุ่มไปทางขวา */
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+.modal-actions .cancel-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.modal-actions .cancel-btn:hover {
+    background-color: #5a6268;
+}
+.danger-text {
+    color: #dc3545;
+}

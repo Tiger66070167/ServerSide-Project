@@ -3,37 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Archived Tasks</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/modal.css"> <!-- ⭐️ 1. เพิ่มลิงก์ modal.css -->
 </head>
 <body>
     <%- include('partials/header') %>
 
-    <% if (tasks && tasks.length > 0) { %>
-    <% tasks.forEach(task => { %>
-        <% if (task.is_deleted === 1) { %>
-        <li>
-            <strong><%= task.title %></strong> -
-            <%= task.status %> -
-            <%= new Date(task.created_at).toLocaleString() %> -
-            <%= task.due_date ? new Date(task.due_date).toLocaleString() : 'N/A' %>
+    <div class="dashboard-container">
+        <div class="welcome-header">
+            <h2>Archived Tasks</h2>
+            <a href="/" class="dashboard-link">← Back to Dashboard</a>
+        </div>
 
-            <form method="POST" action="/recover/<%= task.task_id %>" style="display:inline">
-                <button type="submit" onclick="return confirm('Are you sure?')">Recover</button>
-            </form>
-
-            <form method="POST" action="/delete/<%= task.task_id %>" style="display:inline">
-            
-            <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
-            </form>
-        </li>
-        <% } %>
-    <% }) %>
-    <% } else { %>
-    <li>No tasks in Archive.</li>
-    <% } %>
-
+        <ul class="task-list">
+            <% if (tasks && tasks.length > 0) { %>
+                <% tasks.forEach(task => { %>
+                    <li class="task-item archived">
+                        <div class="task-details">
+                            <strong><%= task.title %></strong>
+                            <span class="task-status <%= task.status.toLowerCase().replace(' ', '-') %>"><%= task.status %></span>
+                            <span class="task-date">Archived: <%= new Date(task.created_at).toLocaleString() %></span>
+                        </div>
+                        <div class="task-actions">
+                            <!-- ⭐️ 2. เปลี่ยนปุ่มเป็น type="button" และเรียก openModal() ⭐️ -->
+                            <button type="button" class="recover-btn" onclick="openModal('/recover/<%= task.task_id %>/confirm')">Recover</button>
+                            <button type="button" class="trash-btn" onclick="openModal('/delete/<%= task.task_id %>/confirm')">Delete Permanently</button>
+                        </div>
+                    </li>
+                <% }) %>
+            <% } else { %>
+                <li class="no-tasks">No tasks in Archive.</li>
+            <% } %>
+        </ul>
+    </div>
 
     <%- include('partials/footer') %>
+
+    <!-- ⭐️ 3. เพิ่ม Modal Container และ Script ⭐️ -->
+    <%- include('pop-up/modalContainer.ejs') %>
+
 </body>
 </html>

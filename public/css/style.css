@@ -386,3 +386,49 @@ header {
   font-size: 12px;
   color: #6c757d;
 }
+
+/* --- Archive Page Styles --- */
+
+/* ปรับสไตล์ของ Task Item ที่ถูก Archive */
+.task-item.archived {
+    background-color: #f8f9fa; /* สีพื้นหลังที่จางลง */
+    opacity: 0.8;
+}
+
+.task-item.archived .task-details strong {
+    color: #6c757d; /* สี Title ที่จางลง */
+    text-decoration: line-through; /* ขีดฆ่า Title */
+}
+
+/* สไตล์สำหรับปุ่ม Recover */
+.recover-btn {
+    background-color: #28a745; /* สีเขียว */
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    margin-right: 10px; /* เพิ่มระยะห่างจากปุ่ม Delete */
+}
+
+.recover-btn:hover {
+    background-color: #218838;
+}
+
+/* ปรับปรุงปุ่ม Trash/Delete ให้ชัดเจนขึ้น */
+.trash-btn {
+    background-color: #dc3545;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.trash-btn:hover {
+    background-color: #c82333;
+}

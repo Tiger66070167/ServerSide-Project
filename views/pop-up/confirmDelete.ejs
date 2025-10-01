@@ -1,0 +1,12 @@
+<!-- /views/pop-up/confirmDelete.ejs -->
+<h3 class="danger-text">Delete Permanently</h3>
+<p>Are you absolutely sure you want to permanently delete the task "<strong><%= task.title %></strong>"?</p>
+<p class="danger-text"><strong>This action cannot be undone.</strong> All associated subtasks will also be deleted forever.</p>
+
+
+<div class="modal-actions">
+    <form method="POST" action="/delete/<%= task.task_id %>">
+        <button type="submit" class="trash-btn">Yes, Delete Permanently</button>
+    </form>
+    <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+</div>

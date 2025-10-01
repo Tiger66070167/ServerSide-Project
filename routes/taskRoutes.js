@@ -42,4 +42,16 @@ router.post('/lists/:listId/complete', taskController.completeList);
 
 router.post('/:taskId/complete', taskController.completeTask);
 
+// GET: สำหรับแสดงหน้าต่างยืนยันการ Recover (คุณมีอยู่แล้ว)
+router.get('/recover/:id/confirm', taskController.showRecoverConfirm);
+
+// ⭐️⭐️⭐️ เพิ่ม Route นี้: POST สำหรับทำการ Recover จริงๆ ⭐️⭐️⭐️
+router.post('/recover/:id', taskController.recoverTask);
+
+// GET: สำหรับแสดงหน้าต่างยืนยันการ Delete (คุณควรจะเพิ่มอันนี้ด้วย)
+router.get('/delete/:id/confirm', taskController.showDeleteConfirm);
+
+// ⭐️⭐️⭐️ เพิ่ม Route นี้: POST สำหรับทำการ Delete จริงๆ ⭐️⭐️⭐️
+router.post('/delete/:id', taskController.deleteTask);
+
 module.exports = router;

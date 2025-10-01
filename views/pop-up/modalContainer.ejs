@@ -4,3 +4,24 @@
         <div id="modalContent"></div>
     </div>
 </div>
+
+<script>
+    async function openModal(url) {
+        const modalContent = document.getElementById('modalContent');
+        modalContent.innerHTML = '<h3>Loading...</h3>'; // แสดง Loading
+        document.getElementById('modalContainer').style.display = 'block';
+
+        const res = await fetch(url);
+        const html = await res.text();
+        modalContent.innerHTML = html;
+    }
+
+    function closeModal() {
+        document.getElementById('modalContainer').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('modalContainer');
+        if (event.target === modal) closeModal();
+    }
+</script>

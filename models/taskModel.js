@@ -120,7 +120,7 @@ exports.deleteTask = async (id) => {
   await db.query('DELETE FROM tasks WHERE task_id = ?', [id]);
 };
 
-exports.recoverTasks = async(id) => {
+exports.recoverTask = async(id) => {
     await db.query('update tasks set is_deleted = 0 where task_id = ?',
     [id]
   );
@@ -140,5 +140,17 @@ exports.getCardDetails = async (req, res) => {
 };
 
 exports.completeTask = async (taskId) => {
-  await db.query("UPDATE tasks SET status = 'completed' WHERE task_id = ?", [taskId]);
+  await db.query(
+    "UPDATE tasks SET status = 'completed', is_deleted = 1 WHERE task_id = ?", 
+    [taskId]
+  );
+};
+
+exports.getTaskById = async (id, includeDeleted = false) => {
+  let sql = 'SELECT * FROM tasks WHERE task_id = ?';
+  if (!includeDeleted) {
+    sql += ' AND is_deleted = 0';
+  }
+  const [rows] = await db.query(sql, [id]);
+  return rows[0];
 };

@@ -1,0 +1,11 @@
+<!-- /views/pop-up/confirmRecover.ejs -->
+<h3>Recover Task</h3>
+<p>Are you sure you want to recover the task "<strong><%= task.title %></strong>"?</p>
+<p>This will move the task back to your main dashboard.</p>
+
+<div class="modal-actions">
+    <form method="POST" action="/recover/<%= task.task_id %>">
+        <button type="submit" class="recover-btn">Yes, Recover</button>
+    </form>
+    <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+</div>

@@ -65,24 +65,38 @@ exports.showEditForm = async (req, res) => {
 };
 
 exports.updateTask = async (req, res) => {
-  const task_id = req.params.id;
-  const { title, description, due_date, priority, status, category_id } = req.body;
+  const taskId = req.params.id;
+  
+  // 1. ดึงข้อมูล Task ปัจจุบันมาก่อน
+  const currentTask = await taskModel.getTaskById(taskId);
+  if (!currentTask) return res.status(404).send('Task not found');
 
-  await taskModel.updateTask(task_id, {
-    title,
-    description,
-    due_date: due_date || null,
-    priority,
-    status,
-    category_id: category_id || null
-  });
+  // 2. สร้าง object ข้อมูลใหม่ โดยใช้ข้อมูลปัจจุบันเป็นพื้นฐาน
+  const updatedData = {
+    title: req.body.title || currentTask.title,
+    description: req.body.description || currentTask.description,
+    due_date: req.body.due_date || currentTask.due_date,
+    priority: req.body.priority || currentTask.priority,
+    status: req.body.status || currentTask.status,
+    category_id: req.body.category_id || currentTask.category_id,
+  };
 
-  res.redirect('/');
+  // 3. ส่งข้อมูลที่สมบูรณ์ไปอัปเดต
+  await taskModel.updateTask(taskId, updatedData);
+
+  // 4. ตรวจสอบว่า request มาจาก AJAX หรือไม่
+  if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
+    // ถ้ามาจาก AJAX (Quick Actions), ตอบกลับเป็น JSON
+    res.status(200).json({ message: 'Task updated successfully' });
+  } else {
+    // ถ้ามาจากฟอร์มปกติ (Detailed Edit), redirect
+    res.redirect(`/${taskId}/board`);
+  }
 };
 
 exports.deleteTask = async (req, res) => {
   await taskModel.deleteTask(req.params.id);
-  res.redirect('/');
+  res.redirect('/archive');
 };
 
 exports.softDeleteTask = async (req, res) => {
@@ -109,7 +123,7 @@ exports.viewarchive = async (req, res) => {
 };
 
 exports.recoverTask = async (req, res) =>{
-  await taskModel.recoverTasks(req.params.id);
+  await taskModel.recoverTask(req.params.id);
   res.redirect('/archive')
 }
 // -----------------------------------------------------------
@@ -124,25 +138,39 @@ exports.showKanbanBoard = async (req, res) => {
     const taskId = req.params.id;
     const user = await userModel.findById(req.cookies.user_id);
 
-    const task = await taskModel.getTaskById(taskId);
-    if (!task) return res.status(404).send('Task not found');
+    if (!user) {
+      return res.redirect('/login');
+    }
 
-    // 1. ดึง Lists ทั้งหมดของ Task นี้
-    const lists = await subtaskModel.getListsByTaskId(taskId);
+    // ⭐️⭐️⭐️ 1. ดึงข้อมูลทั้งหมดที่จำเป็นพร้อมกัน ⭐️⭐️⭐️
+    const [task, lists, categories] = await Promise.all([
+      taskModel.getTaskById(taskId),
+      subtaskModel.getListsByTaskId(taskId),
+      categoryModel.getCategoriesByUser(user.user_id) // <-- ดึง Categories มาด้วย
+    ]);
 
-    // 2. สำหรับแต่ละ List, ดึง Cards ทั้งหมดที่อยู่ใน List นั้น
+    if (!task) {
+      return res.status(404).send('Task not found');
+    }
+
     const listsWithCards = await Promise.all(
       lists.map(async (list) => {
         const cards = await subtaskModel.getCardsByListId(list.list_id);
-        return { ...list, cards: cards }; // trả về object list mới có thêm thuộc tính cards
+        return { ...list, cards: cards };
       })
     );
 
-    res.render('kanban', { task, lists: listsWithCards, user: user, username: user.username });
+    // ⭐️⭐️⭐️ 2. ส่ง categories เข้าไปใน res.render ⭐️⭐️⭐️
+    res.render('kanban', {
+      task,
+      lists: listsWithCards,
+      categories, // <-- ส่งตัวแปร categories ไปให้ EJS
+      username: user.username
+    });
 
   } catch (err) {
     console.error("Error showing Kanban board:", err.message);
-    res.redirect('');
+    res.redirect('/');
   }
 };
 
@@ -320,5 +348,25 @@ exports.completeTask = async (req, res) => {
   } catch (err) {
     console.error("Error completing task:", err.message);
     res.status(500).json({ error: 'Failed to complete task' });
+  }
+};
+
+exports.showRecoverConfirm = async (req, res) => {
+  try {
+    const task = await taskModel.getTaskById(req.params.id, true); // `true` เพื่อให้ดึง task ที่ถูกลบแล้วได้
+    if (!task) return res.status(404).send('Task not found');
+    res.render('pop-up/confirmRecover', { task });
+  } catch (err) {
+    res.status(500).send('Server Error');
+  }
+};
+
+exports.showDeleteConfirm = async (req, res) => {
+  try {
+    const task = await taskModel.getTaskById(req.params.id, true);
+    if (!task) return res.status(404).send('Task not found');
+    res.render('pop-up/confirmDelete', { task });
+  } catch (err) {
+    res.status(500).send('Server Error');
   }
 };
