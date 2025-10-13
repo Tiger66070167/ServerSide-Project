@@ -4,7 +4,7 @@
   <input type="text" name="title" value="<%= task.title %>" required>
 
   <label>Description:</label>
-  <textarea name="description"><%= task.description %></textarea>
+  <textarea name="description" style="resize: none;"><%= task.description %></textarea>
 
   <label>Due Date:</label>
   <input type="datetime-local" name="due_date"
@@ -12,14 +12,14 @@
 
   <label>Priority:</label>
   <select name="priority">
-    <% ['low', 'medium', 'high'].forEach(p => { %>
+    <% ['Low', 'Medium', 'High'].forEach(p => { %>
       <option value="<%= p %>" <%= task.priority === p ? 'selected' : '' %>><%= p %></option>
     <% }) %>
   </select>
 
   <label>Status:</label>
   <select name="status" <%= task.status === 'completed' ? 'disabled' : '' %>>
-    <% ['pending', 'In progress', 'completed'].forEach(s => { %>
+    <% ['Pending', 'In progress', 'Completed'].forEach(s => { %>
       <option value="<%= s %>" <%= task.status === s ? 'selected' : '' %>><%= s.replace('_', ' ') %></option>
     <% }) %>
   </select>

@@ -9,6 +9,7 @@ const userModel = require('./models/userModel');
 
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
@@ -20,6 +21,7 @@ app.use(express.json());
 // Routes
 app.use('/', taskRoutes);
 app.use('/', authRoutes);
+app.use('/categories', categoryRoutes);
 
 // ตั้งเวลาให้ทำงานทุกๆ เที่ยงคืน
 cron.schedule('0 0 * * *', async () => {

@@ -19,15 +19,52 @@ body {
   padding: 20px;
 }
 
+/* =================================
+   HEADER & PROFILE (รวมไว้ที่เดียว)
+   ================================= */
+header {
+  background-color: var(--secondary-color);
+  padding: 10px 40px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+header nav ul {
+  margin: 0; padding: 0; list-style: none; display: flex; gap: 25px; align-items: center;
+}
+header nav a {
+  color: white; text-decoration: none; font-weight: 500; font-size: 16px; transition: color 0.3s ease;
+}
+header nav a:hover {
+  color: var(--accent-color);
+}
+.profile-dropdown { position: relative; }
+.profile-trigger { display: flex; align-items: center; cursor: pointer; padding: 5px; border-radius: 20px; transition: background-color 0.3s; }
+.profile-trigger:hover { background-color: rgba(255, 255, 255, 0.1); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; object-fit: cover; }
+.username { font-weight: 500; margin-right: 5px; }
+.dropdown-menu { display: none; position: absolute; top: 120%; right: 0; background-color: var(--card-background); color: var(--text-color); border-radius: 8px; box-shadow: var(--shadow); min-width: 160px; z-index: 100; overflow: hidden; animation: fadeIn 0.2s ease-out; }
+.dropdown-menu.show { display: block; }
+.dropdown-item { display: block; padding: 12px 16px; color: var(--text-color); text-decoration: none; transition: background-color 0.2s; }
+.dropdown-item:hover { background-color: var(--background-color); }
+.dropdown-item.logout { color: #dc3545; }
+.dropdown-item.logout:hover { background-color: #f8d7da; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+
+/* =================================
+   MAIN DASHBOARD CONTAINER
+   ================================= */
 .dashboard-container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 20px auto; /* เพิ่ม margin-top */
   padding: 20px;
   background-color: var(--card-background);
   border-radius: 8px;
   box-shadow: var(--shadow);
 }
-
 .welcome-header {
   display: flex;
   justify-content: space-between;
@@ -36,399 +73,209 @@ body {
   padding-bottom: 15px;
   margin-bottom: 20px;
 }
+.welcome-header h2 { color: var(--secondary-color); margin: 0; }
+.create-task-btn { background-color: var(--accent-color); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: 500; transition: background-color 0.3s; }
+.create-task-btn:hover { background-color: #e67e00; }
+.filters-container { margin-bottom: 20px; }
+.filter-form { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+.filter-group { display: flex; flex-direction: column; }
+.filter-group label { margin-bottom: 5px; font-weight: 500; color: var(--secondary-color); }
+.filter-group select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 5px; background-color: white; font-size: 14px; }
+.dashboard-links { margin-top: 30px; padding-top: 15px; border-top: 2px solid var(--border-color); display: flex; gap: 20px; }
+.dashboard-link { color: var(--primary-color); text-decoration: none; font-weight: 500; transition: color 0.3s; }
+.dashboard-link:hover { color: var(--accent-color); text-decoration: underline; }
 
-.welcome-header h2 {
-  color: var(--secondary-color);
-  margin: 0;
-}
 
-.create-task-btn {
-  background-color: var(--accent-color);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  transition: background-color 0.3s;
-}
-
-.create-task-btn:hover {
-  background-color: #e67e00;
-}
-
-.filters-container {
-  margin-bottom: 20px;
-}
-
-.filter-form {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.filter-group label {
-  margin-bottom: 5px;
-  font-weight: 500;
-  color: var(--secondary-color);
-}
-
-.filter-group select {
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 5px;
-  background-color: white;
-  font-size: 14px;
-}
-
+/* =================================
+   TASK LIST & ITEMS (ดีไซน์ใหม่ล่าสุด)
+   ================================= */
 .task-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
-
 .task-item {
   background-color: var(--card-background);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 15px;
   margin-bottom: 15px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  transition: box-shadow 0.3s;
+  transition: box-shadow 0.3s, transform 0.3s;
+  padding: 0;
 }
-
 .task-item:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
 }
-
-.task-details {
+.task-link {
+  text-decoration: none;
+  color: inherit;
+  flex-grow: 1;
+  padding: 15px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10px;
 }
-
-.task-details strong {
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.task-header strong {
   font-size: 18px;
   color: var(--secondary-color);
 }
-
 .task-status {
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: white;
-  width: fit-content;
+  padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; color: white; width: fit-content;
 }
-
 .task-status.pending { background-color: #6c757d; }
 .task-status.in-progress { background-color: var(--primary-color); }
 .task-status.completed { background-color: #28a745; }
+.task-meta { display: flex; gap: 15px; font-size: 12px; color: #6c757d; }
 
-.task-date, .task-due-date {
-  font-size: 12px;
-  color: #6c757d;
+/* --- Progress Indicator --- */
+.task-progress { margin-top: 5px; }
+.progress-info { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #495057; margin-bottom: 5px; }
+.progress-bar { width: 100%; height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background-color: var(--primary-color); border-radius: 3px; transition: width 0.5s ease-in-out; }
+
+/* --- Task Quick Actions --- */
+.task-actions {
+  display: flex; align-items: center; padding: 0 15px; border-left: 1px solid var(--border-color); flex-shrink: 0; gap: 10px;
 }
-
-.task-actions button {
-  padding: 8px 12px;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.3s;
+.icon-button {
+  background: none; border: none; color: #6c757d; font-size: 16px; cursor: pointer; padding: 10px; border-radius: 50%; width: 40px; height: 40px;
 }
-
-.edit-btn {
-  background-color: var(--primary-color);
-  color: white;
-  margin-right: 10px;
-}
-
-.edit-btn:hover {
-  background-color: var(--secondary-color);
-}
-
-.trash-btn {
-  background-color: #dc3545;
-  color: white;
-}
-
-.trash-btn:hover {
-  background-color: #c82333;
-}
-
-.no-tasks {
-  text-align: center;
-  padding: 20px;
-  color: #6c757d;
-}
-
-.dashboard-links {
-  margin-top: 30px;
-  padding-top: 15px;
-  border-top: 2px solid var(--border-color);
-  display: flex;
-  gap: 20px;
-}
-
-.dashboard-link {
+.icon-button:hover {
+  background-color: #f0f2f5;
   color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s;
+}
+.no-tasks { text-align: center; padding: 20px; color: #6c757d; }
+
+/* --- Archived Task Item Styles --- */
+.task-item.archived {
+    background-color: #f8f9fa;
+    opacity: 0.7;
+    padding: 20px;
 }
 
-.dashboard-link:hover {
-  color: var(--accent-color);
-  text-decoration: underline;
-}
-
-.delete-link {
-  color: #dc3545;
-}
-
-.delete-link:hover {
-  color: #c82333;
+.task-item.archived .task-header strong {
+    color: #6c757d;
+    text-decoration: line-through;
 }
 
 /* =================================
-   HEADER STYLES
+   ARCHIVE PAGE STYLES
    ================================= */
-header {
-  background-color: var(--secondary-color); /* ใช้สีน้ำเงินเข้มเป็นพื้นหลัง */
-  padding: 15px 40px; /* เพิ่มพื้นที่ว่างภายใน header (แนวตั้ง แนวนอน) */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* เพิ่มเงาเล็กน้อยเพื่อให้ดูมีมิติ */
-  color: white; /* กำหนดสีตัวอักษรเริ่มต้นเป็นสีขาว */
+.recover-btn, .trash-btn {
+    color: white; padding: 8px 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: 500; transition: background-color 0.3s;
 }
-
-header nav ul {
-  margin: 0;
-  padding: 0;
-  list-style: none; /* ลบสัญลักษณ์ bullet point หน้า li */
-  display: flex; /* จัดเรียงรายการ li ในแนวนอน */
-  gap: 25px; /* กำหนดระยะห่างระหว่างแต่ละรายการ */
-  align-items: center; /* จัดให้รายการอยู่กึ่งกลางแนวตั้ง */
-}
-
-header nav a {
-  color: white; /* สีของลิงก์ */
-  text-decoration: none; /* ลบเส้นใต้ลิงก์ */
-  font-weight: 500; /* ทำให้ตัวอักษรหนาขึ้นเล็กน้อย */
-  font-size: 16px;
-  transition: color 0.3s ease; /* เพิ่ม animation ตอนเปลี่ยนสี */
-}
-
-header nav a:hover {
-  color: var(--accent-color); /* เปลี่ยนเป็นสีส้มเมื่อเอาเมาส์ไปชี้ */
-}
+.recover-btn { background-color: #28a745; margin-right: 10px; }
+.recover-btn:hover { background-color: #218838; }
+.trash-btn { background-color: #dc3545; }
+.trash-btn:hover { background-color: #c82333; }
 
 
 /* =================================
    FOOTER STYLES
    ================================= */
 footer {
-  text-align: center; /* จัดข้อความให้อยู่กึ่งกลาง */
-  margin-top: 40px; /* ระยะห่างจากเนื้อหาด้านบน */
-  padding: 20px; /* พื้นที่ว่างภายใน footer */
-  border-top: 1px solid var(--border-color); /* เพิ่มเส้นขอบด้านบน */
-  color: #6c757d; /* สีข้อความที่ไม่เข้มเกินไป ดูสบายตา */
+  text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid var(--border-color); color: #6c757d;
 }
+footer p { margin: 0; }
 
-footer p {
-  margin: 0; /* ลบ margin เริ่มต้นของ <p> */
+
+/* --- Category Filter with Add Button --- */
+.category-filter-group .select-with-add,
+.category-quick-action .select-with-add {
+    display: flex;
+    align-items: center;
 }
-
-/* =================================
-   HEADER & PROFILE DROPDOWN STYLES
-   ================================= */
-
-/* ปรับปรุง Header ให้รองรับ Profile Dropdown */
-header {
-  background-color: var(--secondary-color);
-  padding: 10px 40px; /* ปรับ padding เล็กน้อย */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  color: white;
-  display: flex; /* ทำให้ nav และ profile อยู่คนละฝั่งได้ */
-  justify-content: space-between; /* จัดให้อยู่คนละฝั่ง */
-  align-items: center; /* จัดให้อยู่กึ่งกลางแนวตั้ง */
+.select-with-add select {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
-
-/* ส่วนของ Profile Dropdown ทั้งหมด */
-.profile-dropdown {
-  position: relative; /* สำคัญมาก! เพื่อให้ dropdown-menu อ้างอิงตำแหน่งได้ */
-}
-
-/* ส่วนที่กดเพื่อเปิด-ปิด Dropdown */
-.profile-trigger {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 20px;
-  transition: background-color 0.3s;
-}
-
-.profile-trigger:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%; /* ทำให้รูปเป็นวงกลม */
-  margin-right: 10px;
-  object-fit: cover; /* ป้องกันไม่ให้รูปบิดเบี้ยว */
-}
-
-.username {
-  font-weight: 500;
-  margin-right: 5px;
-}
-
-.profile-trigger svg {
-  transition: transform 0.3s;
-}
-
-/* เมนูดรอปดาวน์ที่ซ่อนไว้ */
-.dropdown-menu {
-  display: none; /* ซ่อนไว้เป็นค่าเริ่มต้น */
-  position: absolute;
-  top: 120%; /* ระยะห่างจาก trigger */
-  right: 0;
-  background-color: var(--card-background);
-  color: var(--text-color);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  min-width: 160px;
-  z-index: 100; /* ทำให้แสดงผลทับองค์ประกอบอื่น */
-  overflow: hidden; /* ทำให้ border-radius มีผลกับ item ภายใน */
-  animation: fadeIn 0.2s ease-out;
-}
-
-/* คลาส .show ที่จะถูกเพิ่มโดย JavaScript เพื่อแสดงเมนู */
-.dropdown-menu.show {
-  display: block;
-}
-
-.dropdown-item {
-  display: block;
-  padding: 12px 16px;
-  color: var(--text-color);
-  text-decoration: none;
-  transition: background-color 0.2s;
-}
-
-.dropdown-item:hover {
-  background-color: var(--background-color);
-}
-
-.dropdown-item.logout {
-  color: #dc3545; /* สีแดงสำหรับ Logout */
-}
-.dropdown-item.logout:hover {
-    background-color: #f8d7da;
-}
-
-/* Keyframe animation สำหรับการ Fade In */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* /css/style.css */
-
-/* ทำให้ li เป็น flex container เพื่อจัดวาง link และ action buttons ในแนวนอน */
-.task-item {
-  /* ... โค้ดอื่นๆ ของคุณ ... */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* ทำให้ <a> ขยายเต็มพื้นที่ที่เหลือ ดันปุ่มไปทางขวา */
-.task-link {
-  text-decoration: none;
-  color: inherit;
-  flex-grow: 1; 
-}
-
-/* ⭐️⭐️⭐️ ส่วนสำคัญ: จัดการแสดงผลภายในลิงก์ ⭐️⭐️⭐️ */
-/* ทำให้ข้อมูลภายใน .task-details เรียงจากบนลงล่าง */
-.task-details {
-  display: flex;
-  flex-direction: column; /* เรียงแนวตั้ง */
-  gap: 5px; /* เพิ่มระยะห่างเล็กน้อยระหว่างบรรทัด */
-}
-
-.task-details strong {
-  font-size: 18px;
-  color: var(--secondary-color);
-}
-
-.task-date, .task-due-date {
-  font-size: 12px;
-  color: #6c757d;
-}
-
-/* --- Archive Page Styles --- */
-
-/* ปรับสไตล์ของ Task Item ที่ถูก Archive */
-.task-item.archived {
-    background-color: #f8f9fa; /* สีพื้นหลังที่จางลง */
-    opacity: 0.8;
-}
-
-.task-item.archived .task-details strong {
-    color: #6c757d; /* สี Title ที่จางลง */
-    text-decoration: line-through; /* ขีดฆ่า Title */
-}
-
-/* สไตล์สำหรับปุ่ม Recover */
-.recover-btn {
-    background-color: #28a745; /* สีเขียว */
-    color: white;
+.add-category-btn {
     padding: 8px 12px;
-    border-radius: 5px;
-    border: none;
+    border: 1px solid var(--border-color);
+    border-left: none;
+    background-color: #f8f9fa;
     cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.3s;
-    margin-right: 10px; /* เพิ่มระยะห่างจากปุ่ม Delete */
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+.add-category-btn:hover { background-color: #e2e6ea; }
+
+/* --- Task Search Bar --- */
+.task-search {
+    position: relative;
+    margin-bottom: 20px;
+    max-width: 400px;
+}
+.task-search i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 18px;
+    pointer-events: none;
+}
+#task-search-input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    font-size: 15px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    background: #f8f9fa;
+    color: #333;
+}
+#task-search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
-.recover-btn:hover {
-    background-color: #218838;
+/* --- Category Management Menu --- */
+.select-with-add {
+    position: relative; /* ทำให้เมนูอ้างอิงตำแหน่งได้ */
 }
-
-/* ปรับปรุงปุ่ม Trash/Delete ให้ชัดเจนขึ้น */
-.trash-btn {
-    background-color: #dc3545;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.3s;
+.category-actions {
+    position: relative;
+    margin-left: 5px;
 }
-
-.trash-btn:hover {
-    background-color: #c82333;
+.manage-categories-btn {
+    padding: 8px;
+    height: auto;
+    width: auto;
+}
+.category-actions-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    z-index: 20;
+    width: 160px;
+    border: 1px solid var(--border-color);
+}
+.category-actions-menu.show {
+    display: block;
+}
+.category-actions-menu button {
+    display: block; width: 100%; text-align: left; background: none; border: none; padding: 10px 15px; cursor: pointer;
+}
+.category-actions-menu button:hover:not(:disabled) {
+    background-color: #f0f2f5;
+}
+.category-actions-menu button.delete { color: #dc3545; }
+.category-actions-menu button:disabled {
+    color: #adb5bd;
+    cursor: not-allowed;
 }

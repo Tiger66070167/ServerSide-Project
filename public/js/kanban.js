@@ -130,7 +130,7 @@
         <h3>Edit Card</h3>
         <form id="edit-card-form" action="/cards/${card.card_id}/update" method="POST">
             <label for="card-description">Description:</label>
-            <textarea id="card-description" name="description" required>${card.description}</textarea>
+            <textarea id="card-description" name="description" style="resize: none" required>${card.description}</textarea>
             <button type="submit">Update Card</button>
         </form>
     `;

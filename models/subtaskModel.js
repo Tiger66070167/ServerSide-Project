@@ -4,7 +4,7 @@ const db = require('../config/db');
 // --- List Functions ---
 exports.getListsByTaskId = async (taskId) => {
   const [lists] = await db.query('SELECT * FROM subtask_lists WHERE task_id = ? ORDER BY order_index ASC', [taskId]);
-  return lists;
+  return lists || [];
 };
 
 exports.createList = async (title, taskId) => {

@@ -7,7 +7,15 @@
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/modal.css">
 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+  
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
   <script src="/js/index.js"></script>
+  <script src="/js/shared.js"></script> 
 
 </head>
 <body>
@@ -31,14 +39,33 @@
           </select>
         </div>
 
-        <div class="filter-group">
-          <label for="category">Category:</label>
-          <select name="category_id" id="category" onchange="this.form.submit()">
-            <option value="">All</option>
-            <% categories.forEach(cat => { %>
-              <option value="<%= cat.category_id %>" <%= category_id == cat.category_id ? 'selected' : '' %>><%= cat.name %></option>
-            <% }) %>
-          </select>
+        <div class="filter-group category-filter-group">
+            <label for="category">Category:</label>
+            <div class="select-with-add">
+                <select name="category_id" id="category" class="category-select" onchange="this.form.submit()">
+                    <option value="">All</option>
+                    <% categories.forEach(cat => { %>
+                        <option value="<%= cat.category_id %>" <%= category_id == cat.category_id ? 'selected' : '' %>><%= cat.name %></option>
+                    <% }) %>
+                </select>
+
+                <!-- Add Category Button -->
+                <button type="button" class="add-category-btn" title="Add New Category">+</button>
+                
+                <!-- ⭐️⭐️⭐️ แก้ไขโครงสร้างที่นี่ ⭐️⭐️⭐️ -->
+                <!-- Category Actions (Edit/Delete) -->
+                <div class="category-actions">
+                    <button type="button" class="manage-categories-btn icon-button" title="Manage Categories">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <!-- ย้ายเมนูเข้ามาไว้ข้างในนี้ -->
+                    <div class="category-actions-menu">
+                        <button class="edit-category-btn" disabled>Edit Selected</button>
+                        <button class="delete-category-btn delete" disabled>Delete Selected</button>
+                    </div>
+                </div>
+                <!-- ⭐️⭐️⭐️ สิ้นสุดการแก้ไข ⭐️⭐️⭐️ -->
+            </div>
         </div>
 
         <div class="filter-group">
@@ -55,30 +82,55 @@
       </form>
     </div>
 
+    <!-- Search Bar -->
+    <div class="task-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="task-search-input" placeholder="Search tasks by title...">
+    </div>
+
     <ul class="task-list">
-      <% if (tasks && tasks.length > 0) { %>
-        <% tasks.forEach(task => { %>
-          <li class="task-item">
-            <a href="/<%= task.task_id %>/board" class="task-link">
-              <div class="task-details">
-                <strong><%= task.title %></strong>
-                <span class="task-status <%= task.status.toLowerCase().replace(' ', '-') %>"><%= task.status %></span>
-                <span class="task-date">Created: <%= new Date(task.created_at).toLocaleString() %></span>
-                <span class="task-due-date">Due: <%= task.due_date ? new Date(task.due_date).toLocaleString() : '' %></span>
-              </div>
-            </a>
-            
-            <div class="task-actions">
-              <button class="edit-btn" onclick="openModal('/edit/<%= task.task_id %>')">Edit</button>
-              <form method="POST" action="/softDeleteTask/<%= task.task_id %>" style="display:inline">
-                <button type="submit" class="trash-btn" onclick="return confirm('Are you sure?')">Move to Trash</button>
-              </form>
-            </div>
-          </li>
-        <% }) %>
-      <% } else { %>
-        <li class="no-tasks">No tasks available.</li>
-      <% } %>
+        <% if (tasks && tasks.length > 0) { %>
+            <% tasks.forEach(task => { %>
+                <li class="task-item">
+                    <!-- ส่วนหลักที่คลิกได้ -->
+                    <a href="/<%= task.task_id %>/board" class="task-link">
+                        <div class="task-header">
+                            <strong><%= task.title %></strong>
+                            <span class="task-status <%= task.status.toLowerCase().replace(' ', '-') %>"><%= task.status %></span>
+                        </div>
+                        <div class="task-meta">
+                            <span>Due: <%= task.due_date ? new Date(task.due_date).toLocaleDateString() : 'N/A' %></span>
+                            <span>Priority: <%= task.priority %></span>
+                        </div>
+
+                        <!-- Progress Indicator -->
+                        <div class="task-progress">
+                            <div class="progress-info">
+                                <i class="fas fa-check-square"></i>
+                                <span><%= task.done_lists || 0 %> / <%= task.total_lists || 0 %> Lists</span>
+                            </div>
+                            <% const progress = task.total_lists > 0 ? (task.done_lists / task.total_lists) * 100 : 0; %>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill" style="width: <%= progress %>%;"></div>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <!-- Quick Edit Actions -->
+                    <div class="task-actions">
+                        <button class="icon-button" onclick="openModal('/edit/<%= task.task_id %>')" title="Edit Task">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <!--  Quick Move To Archive -->
+                        <button class="icon-button" onclick="quickMoveToArchive(this, '<%= task.task_id %>')" title="Move To Archive">
+                            <i class="fa-solid fa-trash-can-arrow-up"></i>
+                        </button>
+                    </div>
+                </li>
+            <% }) %>
+        <% } else { %>
+            <li class="no-tasks">No tasks available.</li>
+        <% } %>
     </ul>
 
     <div class="dashboard-links">

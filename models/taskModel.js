@@ -49,51 +49,46 @@ exports.getDeletedTasks = async () => {
 };
 
 exports.getFilteredAndSortedTasks = async (status, category_id, sort, user_id) => {
-  let query = 'SELECT * FROM tasks WHERE is_deleted = 0 AND user_id = ?';
-  const params = [user_id];
+    // ⭐️⭐️⭐️ แก้ไข SQL Query ทั้งหมด ⭐️⭐️⭐️
+    let query = `
+        SELECT 
+            t.*,
+            COUNT(sl.list_id) AS total_lists,
+            SUM(CASE WHEN sl.is_done = 1 THEN 1 ELSE 0 END) AS done_lists
+        FROM tasks t
+        LEFT JOIN subtask_lists sl ON t.task_id = sl.task_id
+        WHERE t.is_deleted = 0 AND t.user_id = ?
+    `;
+    const params = [user_id];
 
-  // Filter by status
-  if (status && status !== 'All') {
-    query += ' AND status = ?';
-    params.push(status);
-  }
+    // Filter by status
+    if (status && status !== 'All') {
+        query += ' AND t.status = ?';
+        params.push(status);
+    }
 
-  // Filter by category
-  if (category_id) {
-    query += ' AND category_id = ?';
-    params.push(category_id);
-  }
+    // Filter by category
+    if (category_id) {
+        query += ' AND t.category_id = ?';
+        params.push(category_id);
+    }
+    
+    // Group by task to get correct counts
+    query += ' GROUP BY t.task_id';
 
-  // Sorting
-  switch (sort) {
-    case 'priority':
-      query += `
-        ORDER BY
-          CASE
-            WHEN priority = 'high' THEN 1
-            WHEN priority = 'medium' THEN 2
-            WHEN priority = 'low' THEN 3
-          END ASC
-      `;
-      break;
-    case 'due_date_asc':
-      query += ' ORDER BY due_date ASC';
-      break;
-    case 'due_date_desc':
-      query += ' ORDER BY due_date DESC';
-      break;
-    case 'az':
-      query += ' ORDER BY title ASC';
-      break;
-    case 'za':
-      query += ' ORDER BY title DESC';
-      break;
-    default:
-      query += ' ORDER BY created_at DESC';
-  }
+    // Sorting
+    let orderByClause = ' ORDER BY t.created_at DESC'; // Default sort
+    switch (sort) {
+        case 'priority': orderByClause = ' ORDER BY t.priority ASC'; break;
+        case 'due_date_asc': orderByClause = ' ORDER BY t.due_date ASC'; break;
+        case 'due_date_desc': orderByClause = ' ORDER BY t.due_date DESC'; break;
+        case 'az': orderByClause = ' ORDER BY t.title ASC'; break;
+        case 'za': orderByClause = ' ORDER BY t.title DESC'; break;
+    }
+    query += orderByClause;
 
-  const [rows] = await db.query(query, params);
-  return rows;
+    const [rows] = await db.query(query, params);
+    return rows;
 };
 
 
@@ -153,4 +148,8 @@ exports.getTaskById = async (id, includeDeleted = false) => {
   }
   const [rows] = await db.query(sql, [id]);
   return rows[0];
+};
+
+exports.updateTaskStatus = async (taskId, newStatus) => {
+  await db.query('UPDATE tasks SET status = ? WHERE task_id = ?', [newStatus, taskId]);
 };

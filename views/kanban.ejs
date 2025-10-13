@@ -11,7 +11,8 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
     <script src="/js/kanban.js"></script>
-    
+    <script src="/js/shared.js"></script> 
+
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 </head>
@@ -63,14 +64,31 @@
                 </div>
 
                 <!-- Quick Action: Category -->
-                <div class="quick-action">
+                <div class="quick-action category-quick-action">
                     <label for="quick-category"><i class="fas fa-tags"></i></label>
-                    <select id="quick-category" name="category_id" title="Change Category">
-                        <option value="">-- None --</option>
-                        <% categories.forEach(cat => { %>
-                            <option value="<%= cat.category_id %>" <%= task.category_id == cat.category_id ? 'selected' : '' %>><%= cat.name %></option>
-                        <% }) %>
-                    </select>
+                    <!-- ⭐️⭐️⭐️ แก้ไขโครงสร้างทั้งหมดที่นี่ ⭐️⭐️⭐️ -->
+                    <div class="select-with-add">
+                        <select id="quick-category" name="category_id" class="category-select" title="Change Category"> <!-- <-- เพิ่ม class -->
+                            <option value="">-- None --</option>
+                            <% categories.forEach(cat => { %>
+                                <option value="<%= cat.category_id %>" <%= task.category_id == cat.category_id ? 'selected' : '' %>><%= cat.name %></option>
+                            <% }) %>
+                        </select>
+
+                        <!-- Add Category Button -->
+                        <button type="button" class="add-category-btn" title="Add New Category">+</button> <!-- <-- เพิ่มปุ่ม + -->
+                        
+                        <!-- Category Actions (Edit/Delete) -->
+                        <div class="category-actions">
+                        <button type="button" class="manage-categories-btn icon-button" title="Manage Categories">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <div class="category-actions-menu">
+                            <button class="edit-category-btn" disabled>Edit Selected</button>
+                            <button class="delete-category-btn delete" disabled>Delete Selected</button>
+                        </div>
+                    </div>
+                    </div>
                 </div>
                 
                 <!-- Metadata: Due Date -->

@@ -184,6 +184,12 @@ exports.createList = async (req, res) => {
       return res.status(400).json({ error: 'Title is required' });
     }
     
+    const existingLists = await subtaskModel.getListsByTaskId(taskId);
+    if (existingLists.length === 0) {
+        // ถ้ายังไม่มี List เลย (นี่คือ List แรก) ให้อัปเดตสถานะ Task
+        await taskModel.updateTaskStatus(taskId, 'In Progress');
+    }
+
     // เราจะต้องแก้ไข model ให้ return list ที่สร้างใหม่กลับมาด้วย
     const newList = await subtaskModel.createList(title, taskId);
 

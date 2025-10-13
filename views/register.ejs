@@ -31,15 +31,32 @@
         <button type="submit" class="auth-button">Register</button>
       </form>
 
-      <% if (message) { %>
-        <p class="success-message"><%= message %></p>
-      <% } %>
-      <% if (error) { %>
-        <p class="error-message"><%= error %></p>
-      <% } %>
+      <div id="form-messages">
+        <% if (message) { %>
+          <p class="success-message"><%= message %></p>
+        <% } %>
+        <% if (error) { %>
+          <p class="error-message"><%= error %></p>
+        <% } %>
+      </div>
 
       <p class="auth-switch">Already have an account? <a href="/login">Login</a></p>
     </div>
   </div>
+
+  <!-- Script to scroll to messages if they exist -->
+  <script>
+    // รอให้หน้าเว็บโหลดเสร็จก่อน
+    document.addEventListener('DOMContentLoaded', () => {
+      // ค้นหา element ที่เราสร้างไว้
+      const messagesContainer = document.getElementById('form-messages');
+
+      // ตรวจสอบว่าใน container นี้มีข้อความแสดงอยู่หรือไม่ (เช็คจาก element ลูก)
+      if (messagesContainer && messagesContainer.children.length > 0) {
+        // ถ้ามีข้อความ ให้เลื่อนหน้าจอไปที่ตำแหน่งของข้อความนั้นอย่างนุ่มนวล
+        messagesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  </script>
 </body>
 </html>
