@@ -1,51 +1,66 @@
 <header>
-  <nav>
-    <ul>
-      <li><a href="/">Homepage</a></li>
-      <li><a href="/about">About Us</a></li>
-    </ul>
-  </nav>
+    <a href="/" class="brand">
+        <img src="/images/Logo/it-kmitl.png" alt="Website Logo" class="logo">
+        <span class="web-name">Project Management</span> </a>
 
-  <!-- ========== PROFILE DROPDOWN SECTION ========== -->
-  <div class="profile-dropdown">
-    <div class="profile-trigger" onclick="toggleDropdown()">
-      <!-- แสดงรูปโปรไฟล์ ถ้าไม่มีให้ใช้รูป default-avatar.png -->
-      <img 
-        src="<%= (typeof user !== 'undefined' && user.avatar_url) 
-                ? user.avatar_url + '?v=' + new Date().getTime() 
-                : '/images/default-avatar.png' %>" 
-        alt="User Avatar" 
-        class="avatar"
-      >
-      
-      <span class="username"><%= username %></span>
-      
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-        <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-      </svg>
+    <nav>
+        <ul>
+            <li>
+                <a href="/" class="<%= (currentPath === '/') ? 'active' : '' %>">Homepage</a>
+            </li>
+            <li>
+                <a href="/about" class="<%= (currentPath === '/about') ? 'active' : '' %>">About Us</a>
+            </li>
+            </ul>
+    </nav>
+
+    <div class="profile-dropdown">
+        <div class="profile-trigger" onclick="toggleDropdown()">
+            <img 
+                src="<%= (typeof user !== 'undefined' && user.avatar_url) 
+                    ? user.avatar_url + '?v=' + new Date().getTime() 
+                    : '/images/default-avatar.png' %>" 
+                alt="User Avatar" 
+                class="avatar"
+            >
+            <span class="username"><%= username %></span>
+            
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down dropdown-caret" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+            </svg>
+        </div>
+        <div class="dropdown-menu" id="profileDropdownMenu">
+            <a href="/settings" class="dropdown-item">
+                <i class="bi bi-gear-fill"></i> <span>Settings</span>
+            </a>
+            <a href="/logout" class="dropdown-item logout">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </div>
     </div>
-    <div class="dropdown-menu" id="profileDropdownMenu">
-      <a href="/settings" class="dropdown-item">Settings</a>
-      <a href="/logout" class="dropdown-item logout">Logout</a>
-    </div>
-  </div>
 </header>
 
-<!-- ========== JAVASCRIPT FOR DROPDOWN ========== -->
 <script>
-  function toggleDropdown() {
-    document.getElementById("profileDropdownMenu").classList.toggle("show");
-  }
-
-  window.onclick = function(event) {
-    if (!event.target.closest('.profile-trigger')) {
-      const dropdowns = document.getElementsByClassName("dropdown-menu");
-      for (let i = 0; i < dropdowns.length; i++) {
-        const openDropdown = dropdowns[i];
-        if (openDropdown.classList.contains('show')) {
-          openDropdown.classList.remove('show');
-        }
-      }
+    function toggleDropdown() {
+        // เพิ่มการสลับคลาส 'open' ที่ .profile-trigger เพื่อให้ลูกศรหมุนได้
+        document.querySelector('.profile-trigger').classList.toggle('open');
+        document.getElementById("profileDropdownMenu").classList.toggle("show");
     }
-  }
+
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function(event) {
+        if (!event.target.closest('.profile-dropdown')) {
+            const dropdowns = document.getElementsByClassName("dropdown-menu");
+            const triggers = document.getElementsByClassName("profile-trigger");
+            
+            for (let i = 0; i < dropdowns.length; i++) {
+                if (dropdowns[i].classList.contains('show')) {
+                    dropdowns[i].classList.remove('show');
+                    // เมื่อปิดเมนู ให้เอาคลาส 'open' ออกจาก trigger ด้วย
+                    triggers[i].classList.remove('open');
+                }
+            }
+        }
+    }
 </script>

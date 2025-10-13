@@ -82,41 +82,68 @@ body {
 /* --- Team Section --- */
 .team-section {
     text-align: center;
-    background-color: var(--card-background);
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
+    /* ไม่ต้องใส่พื้นหลังหรือเงาที่ section นี้แล้ว 
+       เพราะเราจะไปใส่ที่การ์ดแต่ละใบแทน */
+    padding: 40px 0; /* เพิ่ม padding แนวตั้งเล็กน้อย */
+    margin-bottom: 50px;
 }
 
 .team-section h2 {
     font-size: 2.5em;
     color: var(--secondary-color);
-    margin-bottom: 30px;
+    margin-bottom: 40px; /* ทำให้ระยะห่างเท่ากับ features-section */
+}
+
+/* ใช้ Grid Layout เหมือน features-section เพื่อความสอดคล้อง */
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+/* ทำให้ .team-member แต่ละอันเป็นการ์ด 1 ใบ */
+.team-member {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 8px; /* ใช้ค่าเดียวกับ .feature-card */
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Hover effect เหมือนกับ .feature-card */
+.team-member:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 .team-member img {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    border: 4px solid var(--accent-color); /* ขอบสีส้ม */
-    margin-bottom: 15px;
+    object-fit: cover; /* ป้องกันภาพบิดเบี้ยว */
+    border: 4px solid var(--accent-color); /* ใช้ขอบสีส้มจาก variable ของคุณ */
+    margin-bottom: 20px;
 }
 
 .team-member h4 {
-    font-size: 1.5em;
-    margin: 0 0 5px 0;
+    font-size: 1.5em; /* ขนาดเท่ากับ h3 ใน feature-card */
     color: var(--secondary-color);
+    margin: 0 0 5px 0;
 }
 
-.team-member p {
-    margin: 0;
-    color: #6c757d;
+/* เพิ่มคลาส .role เพื่อกำหนดสไตล์ให้ตำแหน่ง */
+.team-member .role {
+    color: var(--primary-color); /* ใช้สีฟ้าหลัก (primary) เพื่อความโดดเด่น */
+    font-weight: bold;
+    margin-bottom: 15px;
 }
 
 .team-member .team-bio {
-    font-style: italic;
-    margin-top: 15px;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
+    color: #6c757d; /* ใช้สีเทาจากสไตล์เดิมของคุณ */
+    line-height: 1.6;
+    font-style: normal; /* เอาตัวเอียงออกเพื่อให้ดูคล้าย p ใน feature-card */
+    margin: 0;
 }

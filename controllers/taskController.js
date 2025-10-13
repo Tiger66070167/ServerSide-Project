@@ -22,7 +22,7 @@ exports.showTasks = async (req, res) => {
     const tasks = await taskModel.getFilteredAndSortedTasks(filter, category_id, sort, user.user_id);
     const categories = await categoryModel.getCategoriesByUser(user.user_id);
 
-    res.render('index', { tasks, user: user, username: user.username, filter, categories, category_id, sort });
+    res.render('index', { tasks, user: user, username: user.username, filter, categories, category_id, sort, currentPath: '/' });
   } catch (err) {
     console.error("Error in showTasks:", err);
     res.redirect('/login');
@@ -114,10 +114,10 @@ exports.viewarchive = async (req, res) => {
         }
     }
 
-  res.render('archive', { tasks, username });
+  res.render('archive', { tasks, username, currentPath: '/archive' });
 
   } catch (err) {
-    console.error("Error rendering about page:", err.message);
+    console.error("Error rendering archive page:", err.message);
     res.redirect('/');
   }
 };
@@ -165,7 +165,8 @@ exports.showKanbanBoard = async (req, res) => {
       task,
       lists: listsWithCards,
       categories, // <-- ส่งตัวแปร categories ไปให้ EJS
-      username: user.username
+      username: user.username,
+      currentPath: '/kanban'
     });
 
   } catch (err) {

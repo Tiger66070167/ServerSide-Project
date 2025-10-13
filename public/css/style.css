@@ -16,7 +16,7 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   margin: 0;
-  padding: 20px;
+  /* padding: 20px; */
 }
 
 /* =================================
@@ -278,4 +278,87 @@ footer p { margin: 0; }
 .category-actions-menu button:disabled {
     color: #adb5bd;
     cursor: not-allowed;
+}
+
+/* --- Fix for Long Category Names --- */
+
+/* 1. Make the category filter group flexible */
+.filter-group.category-filter-group {
+    flex: 1; /* Allows the group to grow and shrink */
+    max-width: 180px; /* Prevents it from becoming too small */
+}
+
+/* 2. Constrain the dropdown within its group */
+.category-filter-group .select-with-add {
+    width: 100%; /* Make the container fill the available space */
+}
+
+/* 3. Shorten the text inside the dropdown if it's too long */
+.category-filter-group .select-with-add select {
+    width: 100%; /* Make the select element fill its container */
+    
+    /* These three lines create the "long text..." effect */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* =================================
+   HEADER & PROFILE (IMPROVEMENTS)
+   ================================= */
+
+/* --- 1. Brand & Logo Styling --- */
+header {
+    gap: 50px; /* เพิ่มระยะห่างระหว่าง Brand, Nav, และ Profile */
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+    margin-right: auto; /* !! สำคัญ: ดัน Nav และ Profile ไปทางขวา */
+}
+
+.logo {
+    height: 36px; /* กำหนดขนาดโลโก้ */
+    margin-right: 12px;
+}
+
+.web-name {
+    font-size: 22px;
+    font-weight: 700; /* ทำให้ชื่อเว็บโดดเด่น */
+    letter-spacing: 1px;
+}
+
+/* --- 2. Navigation Active State --- */
+header nav a.active {
+    color: var(--accent-color); /* ใช้สีส้มเพื่อบอกว่าหน้านี้ถูกเลือกอยู่ */
+    font-weight: 700;
+}
+
+/* --- 3. Dropdown Polish --- */
+.profile-trigger .dropdown-caret {
+    transition: transform 0.3s ease; /* เพิ่ม animation ตอนหมุน */
+}
+
+.profile-trigger.open .dropdown-caret {
+    transform: rotate(180deg); /* หมุนลูกศรเมื่อเมนูเปิด */
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* ระยะห่างระหว่างไอคอนกับข้อความ */
+}
+
+.dropdown-item i {
+    font-size: 16px;
+    width: 20px; /* กำหนดความกว้างให้ไอคอน */
+    text-align: center;
+}
+
+/* เพิ่มเส้นแบ่งระหว่างเมนูทั่วไปกับ Logout */
+.dropdown-item.logout {
+    border-top: 1px solid var(--border-color);
 }

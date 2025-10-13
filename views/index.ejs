@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
+  <title>Project Management: Homepage</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/modal.css">
 
@@ -14,8 +14,9 @@
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
+  <script src="/js/shared.js"></script>
   <script src="/js/index.js"></script>
-  <script src="/js/shared.js"></script> 
+  
 
 </head>
 <body>
@@ -52,19 +53,18 @@
                 <!-- Add Category Button -->
                 <button type="button" class="add-category-btn" title="Add New Category">+</button>
                 
-                <!-- ⭐️⭐️⭐️ แก้ไขโครงสร้างที่นี่ ⭐️⭐️⭐️ -->
                 <!-- Category Actions (Edit/Delete) -->
                 <div class="category-actions">
                     <button type="button" class="manage-categories-btn icon-button" title="Manage Categories">
                         <i class="fas fa-cog"></i>
                     </button>
-                    <!-- ย้ายเมนูเข้ามาไว้ข้างในนี้ -->
                     <div class="category-actions-menu">
-                        <button class="edit-category-btn" disabled>Edit Selected</button>
-                        <button class="delete-category-btn delete" disabled>Delete Selected</button>
+                        <!-- FIX: Add type="button" to prevent form submission -->
+                        <button type="button" class="edit-category-btn" disabled>Edit Selected</button>
+                        <button type="button" class="delete-category-btn delete" disabled>Delete Selected</button>
                     </div>
                 </div>
-                <!-- ⭐️⭐️⭐️ สิ้นสุดการแก้ไข ⭐️⭐️⭐️ -->
+
             </div>
         </div>
 
@@ -122,7 +122,7 @@
                             <i class="fa-solid fa-pen"></i>
                         </button>
                         <!--  Quick Move To Archive -->
-                        <button class="icon-button" onclick="quickMoveToArchive(this, '<%= task.task_id %>')" title="Move To Archive">
+                        <button class="icon-button quick-move-archive-btn" data-task-id="<%= task.task_id %>" title="Move To Archive">
                             <i class="fa-solid fa-trash-can-arrow-up"></i>
                         </button>
                     </div>

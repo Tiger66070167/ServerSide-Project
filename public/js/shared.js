@@ -1,17 +1,110 @@
-document.addEventListener('DOMContentLoaded', () => {
+// ==============================================
+// SHARED JAVASCRIPT
+// FINAL VERSION - Includes pop-ups for Add, Edit, and Delete.
+// ==============================================
 
+// --- GLOBAL HELPER FUNCTIONS ---
+
+function closeModal() {
+    const modalContainer = document.getElementById('modalContainer');
+    if (modalContainer) {
+        modalContainer.style.display = 'none';
+    }
+}
+
+async function openModal(url) {
+    const modalContainer = document.getElementById('modalContainer');
+    const modalContent = document.getElementById('modalContent');
+    if (!modalContainer || !modalContent) return;
+    
+    modalContent.innerHTML = '<h3>Loading...</h3>';
+    modalContainer.style.display = 'block'; 
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Could not load content from server.');
+        modalContent.innerHTML = await response.text();
+    } catch (error) {
+        modalContent.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+    }
+}
+
+function openConfirmationModal({ title, message, confirmText = 'Confirm', cancelText = 'Cancel', onConfirm }) {
+    const modalContainer = document.getElementById('modalContainer');
+    const modalContent = document.getElementById('modalContent');
+    if (!modalContainer || !modalContent) return;
+    
+    modalContent.innerHTML = `
+        <div class="confirmation-modal">
+            <h3>${title}</h3>
+            <p>${message}</p>
+            <div class="confirmation-buttons">
+                <button type="button" class="cancel-btn">${cancelText}</button>
+                <button type="button" class="confirm-btn">${confirmText}</button>
+            </div>
+        </div>
+    `;
+
+    modalContent.querySelector('.confirm-btn').onclick = () => { onConfirm(); closeModal(); };
+    modalContent.querySelector('.cancel-btn').onclick = closeModal;
+    
+    modalContainer.style.display = 'block'; 
+}
+
+/**
+ * NEW: Opens a pop-up with a text input field, like a custom prompt.
+ * @param {object} options - Configuration for the prompt modal.
+ */
+function openPromptModal({ title, label, confirmText = 'Save', defaultValue = '', onConfirm }) {
+    const modalContainer = document.getElementById('modalContainer');
+    const modalContent = document.getElementById('modalContent');
+    if (!modalContainer || !modalContent) return;
+
+    modalContent.innerHTML = `
+        <h3>${title}</h3>
+        <form class="prompt-modal-form">
+            <label>${label}</label>
+            <input type="text" id="promptInput" value="${defaultValue}" required>
+            <div class="modal-actions">
+                <button type="button" class="cancel-btn">Cancel</button>
+                <button type="submit" class="confirm-btn">${confirmText}</button>
+            </div>
+        </form>
+    `;
+
+    const form = modalContent.querySelector('form');
+    const input = modalContent.querySelector('#promptInput');
+    const cancelBtn = modalContent.querySelector('.cancel-btn');
+
+    // Automatically focus the input field for a better user experience
+    setTimeout(() => input.focus(), 100);
+
+    form.onsubmit = (event) => {
+        event.preventDefault(); // Prevent page refresh
+        if (input.value && input.value.trim() !== "") {
+            onConfirm(input.value.trim()); // Pass the value to the callback
+            closeModal();
+        }
+    };
+
+    cancelBtn.onclick = closeModal;
+    
+    modalContainer.style.display = 'block';
+}
+
+// Global listener to close the modal on background click.
+window.onclick = (event) => {
+    if (event.target.id === 'modalContainer') {
+        closeModal();
+    }
+}
+
+// --- DOMContentLoaded ---
+document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
 
-    // --- Main Click Handler for Category Actions ---
     body.addEventListener('click', async (event) => {
         const target = event.target;
-
-        // --- Handle Add New Category ---
-        if (target.closest('.add-category-btn')) {
-            await handleAddCategory(target); // <-- Pass the button element
-        }
-
-        // --- Handle Manage Category Menu ---
         const manageBtn = target.closest('.manage-categories-btn');
         if (manageBtn) {
             const menu = manageBtn.nextElementSibling;
@@ -19,126 +112,110 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isShowing = menu.classList.contains('show');
                 closeAllCategoryMenus();
                 if (!isShowing) {
-                    // Update menu state before showing
                     updateCategoryMenuState(manageBtn.closest('.select-with-add').querySelector('.category-select'));
                     menu.classList.toggle('show');
                 }
             }
             return;
         }
-        
-        // --- Handle Edit/Delete from Menu ---
-        if (target.closest('.edit-category-btn')) {
-            await handleEditCategory(target);
-            closeAllCategoryMenus();
-        }
-        if (target.closest('.delete-category-btn')) {
-            await handleDeleteCategory(target);
-            closeAllCategoryMenus();
-        }
-
-        // --- Close Menus on outside click ---
-        if (!target.closest('.category-actions')) {
-            closeAllCategoryMenus();
-        }
+        if (target.closest('.add-category-btn')) handleAddCategory();
+        if (target.closest('.edit-category-btn')) handleEditCategory(target);
+        if (target.closest('.delete-category-btn')) handleDeleteCategory(target);
+        if (!target.closest('.category-actions')) closeAllCategoryMenus();
     });
 
-    // --- HANDLER FUNCTIONS ---
-    async function handleAddCategory(button) {
-        const newCategoryName = prompt("Enter new category name:");
-        if (newCategoryName && newCategoryName.trim() !== "") {
-            try {
-                const response = await fetch('/categories/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: newCategoryName.trim() })
-                });
+    // --- Handler Functions for Category Management ---
 
-                if (!response.ok) throw new Error('Failed to create category');
-                
-                // Since we are reloading, we don't need to manually add the option.
-                // The reload will fetch the new list of categories from the server.
-                window.location.reload();
-
-            } catch (error) {
-                console.error('Error adding category:', error);
-                alert('Could not add category.');
-            }
-        }
-    }
-
-    async function handleEditCategory(button) {
-        const select = button.closest('.select-with-add').querySelector('.category-select');
-        const selectedOption = select.options[select.selectedIndex];
-        
-        const newName = prompt("Enter new name for category:", selectedOption.textContent);
-        if (newName && newName.trim() !== "" && newName.trim() !== selectedOption.textContent) {
-            try {
-                const response = await fetch(`/categories/${selectedOption.value}/update`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: newName.trim() })
-                });
-
-                if (!response.ok) throw new Error('Failed to update category');
-                
-                // RELOAD THE PAGE to see the changes everywhere
-                window.location.reload();
-
-            } catch (error) {
-                console.error('Error editing category:', error);
-                alert('Could not update category.');
-            }
-        }
-    }
-
-    async function handleDeleteCategory(button) {
-        const select = button.closest('.select-with-add').querySelector('.category-select');
-        const selectedOption = select.options[select.selectedIndex];
-
-        if (confirm(`Are you sure you want to delete "${selectedOption.textContent}"?`)) {
-            fetch(`/categories/${selectedOption.value}/delete`, { method: 'POST' })
-            .then(response => {
-                // 1. ตรวจสอบว่า server ตอบกลับมาว่า OK หรือไม่
-                if (!response.ok) {
-                    // ถ้าไม่ OK, ให้โยน Error เพื่อให้ .catch() ทำงาน
-                    throw new Error('Server responded with an error.');
+    /**
+     * UPDATED: Opens a custom pop-up to add a new category.
+     */
+    function handleAddCategory() {
+        openPromptModal({
+            title: 'Add New Category',
+            label: 'Category Name:',
+            confirmText: 'Create',
+            onConfirm: async (newCategoryName) => {
+                try {
+                    const response = await fetch('/categories/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: newCategoryName })
+                    });
+                    if (!response.ok) throw new Error('Failed to create category.');
+                    window.location.reload();
+                } catch (error) {
+                    alert('Could not add the new category.');
                 }
-                // 2. ถ้า OK, ให้ return response (เพื่อให้ .then() ถัดไปทำงานได้)
-                return response.json(); 
-            })
-            .then(data => {
-                // 3. เมื่อทุกอย่างสำเร็จเรียบร้อยดี ค่อย Reload หน้าเว็บ
-                console.log('Delete successful:', data.message);
-                window.location.reload();
-            })
-            .catch(error => {
-                // 4. ถ้ามี Error เกิดขึ้นที่ขั้นตอนไหนก็ตาม ให้แสดง Alert
-                console.error('Error deleting category:', error);
-                alert('Could not delete category. Please check the server logs.');
-            });
-        }
-    }
-
-    // --- HELPER FUNCTIONS ---
-    function updateCategoryMenuState(selectElement) {
-        const menu = selectElement.closest('.select-with-add').querySelector('.category-actions-menu');
-        if (!menu) return;
-        
-        const editBtn = menu.querySelector('.edit-category-btn');
-        const deleteBtn = menu.querySelector('.delete-category-btn');
-        
-        const isActionable = selectElement.value !== "";
-        editBtn.disabled = !isActionable;
-        deleteBtn.disabled = !isActionable;
-    }
-
-    function closeAllCategoryMenus() {
-        document.querySelectorAll('.category-actions-menu.show').forEach(menu => {
-            menu.classList.remove('show');
+            }
         });
     }
 
-    // Initialize state for all menus on load
+    /**
+     * UPDATED: Opens a custom pop-up to edit the selected category.
+     */
+    function handleEditCategory(button) {
+        const select = button.closest('.select-with-add').querySelector('.category-select');
+        const selectedOption = select.options[select.selectedIndex];
+        if (!selectedOption || !selectedOption.value) return;
+
+        openPromptModal({
+            title: 'Edit Category',
+            label: 'New Category Name:',
+            defaultValue: selectedOption.textContent,
+            confirmText: 'Update',
+            onConfirm: async (newName) => {
+                if (newName === selectedOption.textContent) return; // No change needed
+                try {
+                    const response = await fetch(`/categories/${selectedOption.value}/update`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: newName })
+                    });
+                    if (!response.ok) throw new Error('Failed to update category.');
+                    window.location.reload();
+                } catch (error) {
+                    alert('Could not update the category.');
+                }
+            }
+        });
+    }
+
+    /**
+     * FIXED: Shows a confirmation modal to delete the selected category.
+     */
+    function handleDeleteCategory(button) {
+        const select = button.closest('.select-with-add').querySelector('.category-select');
+        const selectedOption = select.options[select.selectedIndex];
+        if (!selectedOption || !selectedOption.value) return;
+
+        openConfirmationModal({
+            title: 'Delete Category?',
+            message: `Are you sure you want to delete "<strong>${selectedOption.textContent}</strong>"? Tasks will become uncategorized.`,
+            confirmText: 'Yes, Delete',
+            onConfirm: async () => {
+                try {
+                    const response = await fetch(`/categories/${selectedOption.value}/delete`, { method: 'POST' });
+                    if (!response.ok) throw new Error('Server error.');
+                    window.location.reload();
+                } catch (error) {
+                    alert('Could not delete the category.');
+                }
+            }
+        });
+        closeAllCategoryMenus();
+    }
+
+    // --- Helper Functions for UI ---
+    function updateCategoryMenuState(selectElement) {
+        const menu = selectElement.closest('.select-with-add').querySelector('.category-actions-menu');
+        if (!menu) return;
+        const hasSelection = selectElement.value !== "";
+        menu.querySelectorAll('button').forEach(btn => btn.disabled = !hasSelection);
+    }
+
+    function closeAllCategoryMenus() {
+        document.querySelectorAll('.category-actions-menu.show').forEach(menu => menu.classList.remove('show'));
+    }
+
     document.querySelectorAll('.category-select').forEach(updateCategoryMenuState);
 });

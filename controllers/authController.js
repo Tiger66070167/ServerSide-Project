@@ -135,7 +135,7 @@ exports.renderSettings = async (req, res) => {
       return res.redirect('/login');
     }
 
-    res.render('settings', { user: user, username: user.username });
+    res.render('settings', { user: user, username: user.username, currentPath: '/settings' });
   } catch (err) {
     console.error("Error rendering settings page:", err.message);
     res.redirect('/');
@@ -211,7 +211,7 @@ exports.renderAbout = async (req, res) => {
       return res.redirect('/login');
     }
 
-    res.render('about', { username: user.username, user: user });
+    res.render('about', { username: user.username, user: user , currentPath: '/about'});
   } catch (err) {
     console.error("Error rendering about page:", err.message);
     res.redirect('/');
