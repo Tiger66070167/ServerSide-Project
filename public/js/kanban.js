@@ -145,22 +145,78 @@
     `;
 
     function checkListCompletion(listElement) {
-    if (!listElement) return;
-    // หา ปุ่ม Complete List
-    const completeBtn = listElement.querySelector('.complete-list-btn');
-    if (!completeBtn) {
-        return; 
+        if (!listElement) return;
+        // หา ปุ่ม Complete List
+        const completeBtn = listElement.querySelector('.complete-list-btn');
+        if (!completeBtn) {
+            return; 
+        }
+
+        // ตรวจสอบว่ามีการ์ดในลิสต์หรือไม่ และถ้ามีทั้งหมดเป็น done หรือไม่
+        const cards = listElement.querySelectorAll('.kanban-card');
+        const doneCards = listElement.querySelectorAll('.kanban-card.done');
+        if (cards.length > 0 && cards.length === doneCards.length) {
+            completeBtn.disabled = false;
+        } else {
+            completeBtn.disabled = true;
+        }
     }
 
-    // ตรวจสอบว่ามีการ์ดในลิสต์หรือไม่ และถ้ามีทั้งหมดเป็น done หรือไม่
-    const cards = listElement.querySelectorAll('.kanban-card');
-    const doneCards = listElement.querySelectorAll('.kanban-card.done');
-    if (cards.length > 0 && cards.length === doneCards.length) {
-        completeBtn.disabled = false;
-    } else {
-        completeBtn.disabled = true;
-    }
-}
+    /**
+     * สร้างและเปิด Modal สำหรับยืนยันการลบ
+     * @param {object} options - ข้อมูลสำหรับ Modal
+     * @param {string} options.itemType - ประเภทของไอเท็ม (เช่น 'Card', 'List')
+     * @param {string} options.itemName - ชื่อ/คำอธิบายของไอเท็มที่จะแสดงในข้อความ
+     * @param {string} options.formAction - URL ที่จะส่ง request ไปเพื่อลบ
+     * @param {Element} options.elementToRemove - Element ที่จะลบออกจากหน้าเว็บหลังลบสำเร็จ
+     */
+    const openDeleteConfirmationModal = ({ itemType, itemName, formAction, elementToRemove }) => {
+        const modalContent = document.getElementById('modalContent');
+
+        // สร้าง HTML โดยอ้างอิงจาก confirmDelete.ejs
+        const modalHtml = `
+            <h3 class="danger-text">Delete Permanently</h3>
+            <p>Are you absolutely sure you want to permanently delete the ${itemType.toLowerCase()} "<strong>${itemName}</strong>"?</p>
+            <p class="danger-text"><strong>This action cannot be undone.</strong></p>
+            <div class="modal-actions">
+                <form id="confirm-delete-form" method="POST" action="${formAction}">
+                    <button type="submit" class="trash-btn">Yes, Delete Permanently</button>
+                </form>
+                <button type="button" class="cancel-btn">Cancel</button>
+            </div>
+        `;
+        
+        modalContent.innerHTML = modalHtml;
+
+        const form = modalContent.querySelector('#confirm-delete-form');
+        const cancelButton = modalContent.querySelector('.cancel-btn');
+
+        // Handler เมื่อฟอร์มถูก submit
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(form.action, { method: 'POST' });
+                if (!response.ok) {
+                    throw new Error(`Failed to delete ${itemType}`);
+                }
+                
+                elementToRemove.remove(); // ลบ Element ออกจากหน้าเว็บ
+                closeModal();
+                showToast(`${itemType} deleted successfully!`);
+
+            } catch (error) {
+                showToast(error.message, 'error');
+                closeModal();
+            }
+        });
+
+        // Handler สำหรับปุ่ม Cancel
+        cancelButton.addEventListener('click', () => {
+            closeModal();
+        });
+
+        openModal();
+    };
 
     // ==================================================
     // 3. EVENT HANDLERS
@@ -288,35 +344,27 @@
     };
 
     const handleDeleteList = (listElement) => {
-        if (confirm("Delete this list and all its cards?")) {
-            const listId = listElement.dataset.listId;
-            fetch(`/lists/${listId}/delete`, { method: 'POST' })
-            .then(res => {
-                if (res.ok) {
-                    listElement.remove();
-                    showToast("List deleted!");
-                } else {
-                    throw new Error('Failed');
-                }
-            })
-            .catch(() => showToast("Error deleting list", "error"));
-        }
+        const listId = listElement.dataset.listId;
+        const listTitle = listElement.querySelector('.list-title').textContent.trim();
+        
+        openDeleteConfirmationModal({
+            itemType: 'List',
+            itemName: listTitle,
+            formAction: `/lists/${listId}/delete`,
+            elementToRemove: listElement
+        });
     };
 
     const handleDeleteCard = (cardElement) => {
-        if (confirm("Delete this card?")) {
-            const cardId = cardElement.dataset.cardId;
-            fetch(`/cards/${cardId}/delete`, { method: 'POST' })
-            .then(res => {
-                if (res.ok) {
-                    cardElement.remove();
-                    showToast("Card deleted!");
-                } else {
-                    throw new Error('Failed');
-                }
-            })
-            .catch(() => showToast("Error deleting card", "error"));
-        }
+        const cardId = cardElement.dataset.cardId;
+        const cardDescription = cardElement.querySelector('.card-description').textContent.trim();
+        
+        openDeleteConfirmationModal({
+            itemType: 'Card',
+            itemName: cardDescription,
+            formAction: `/cards/${cardId}/delete`,
+            elementToRemove: cardElement
+        });
     };
 
     async function handleToggleCardStatus(cardElement) {
