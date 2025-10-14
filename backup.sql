@@ -48,7 +48,7 @@ CREATE TABLE `subtask_cards` (
   PRIMARY KEY (`card_id`),
   KEY `list_id` (`list_id`),
   CONSTRAINT `fk_list_id` FOREIGN KEY (`list_id`) REFERENCES `subtask_lists` (`list_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,7 +68,7 @@ CREATE TABLE `subtask_lists` (
   PRIMARY KEY (`list_id`),
   KEY `task_id` (`task_id`),
   CONSTRAINT `subtask_lists_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`task_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -83,8 +83,8 @@ CREATE TABLE `tasks` (
   `title` varchar(100) NOT NULL,
   `description` text,
   `due_date` datetime DEFAULT NULL,
-  `priority` enum('low','medium','high') NOT NULL DEFAULT 'medium',
-  `status` enum('pending','in_progress','completed') NOT NULL DEFAULT 'pending',
+  `priority` enum('Low','Medium','High') NOT NULL DEFAULT 'Low',
+  `status` enum('Pending','In Progress','Completed') NOT NULL DEFAULT 'Pending',
   `is_deleted` tinyint(1) NOT NULL DEFAULT '0',
   `user_id` int NOT NULL,
   `category_id` int DEFAULT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE `tasks` (
   KEY `idx_category_id` (`category_id`),
   CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `tasks_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -118,7 +118,7 @@ CREATE TABLE `users` (
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -130,4 +130,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-10-01  5:46:13
+-- Dump completed on 2025-10-14 10:18:52
