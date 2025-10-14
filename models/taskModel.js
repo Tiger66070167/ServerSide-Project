@@ -95,14 +95,18 @@ exports.getFilteredAndSortedTasks = async (status, category_id, sort, user_id) =
 
 // CRUD Task //
 
-exports.createTask = async (task) => {
-  const { title, description, due_date, priority, status, category_id, user_id } = task;
-
-  await db.query(
-    `INSERT INTO tasks (title, description, due_date, priority, status, created_at, category_id, user_id)
-     VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)`,
-    [title, description, due_date, priority, status, category_id, user_id]
-  );
+exports.createTask = async (taskData) => {
+  const { title, description, due_date, priority, status, category_id, user_id } = taskData;
+  const sql = `
+    INSERT INTO tasks (title, description, due_date, priority, status, created_at, updated_at, category_id, user_id)
+    VALUES (?, ?, ?, ?, ?, NOW(), NOW(), ?, ?)
+  `;
+  const [result] = await db.query(sql, [
+    title, description, due_date, priority, status, category_id, user_id
+  ]);
+  
+  // Return the inserted task ID
+  return result.insertId;
 };
 
 exports.softDeleteTask = async (id) => {

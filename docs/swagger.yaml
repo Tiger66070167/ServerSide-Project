@@ -1,0 +1,399 @@
+openapi: 3.0.0
+info:
+  title: "Project Management API"
+  description: "เอกสาร API สำหรับจัดการ Task, Category, และ Kanban Board (Lists/Cards)"
+  version: "1.0.0"
+servers:
+  - url: "http://localhost:3000"
+    description: "Development Server"
+
+# ===============================================================
+#  ส่วนประกอบที่ใช้ซ้ำ (Schemas)
+# ===============================================================
+components:
+  schemas:
+    Category:
+      type: object
+      properties:
+        category_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Work Projects"
+        user_id:
+          type: integer
+          example: 101
+
+    Task:
+      type: object
+      properties:
+        task_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Project Alpha"
+        description:
+          type: string
+          example: "Finish the main feature."
+        due_date:
+          type: string
+          format: date-time
+          example: "2025-12-31T17:00:00.000Z"
+        priority:
+          type: string
+          enum: [Low, Medium, High]
+          example: "High"
+        status:
+          type: string
+          enum: [Pending, In Progress, Completed]
+          example: "In Progress"
+        category_id:
+          type: integer
+          example: 1
+    
+    List:
+      type: object
+      properties:
+        list_id:
+          type: integer
+          example: 20
+        title:
+          type: string
+          example: "To Do"
+        task_id:
+          type: integer
+          example: 1
+    
+    Card:
+      type: object
+      properties:
+        card_id:
+          type: integer
+          example: 301
+        description:
+          type: string
+          example: "Setup the database schema."
+        list_id:
+          type: integer
+          example: 20
+        is_done:
+          type: boolean
+          example: false
+
+    UpdateTaskPayload:
+      type: object
+      description: "ข้อมูลสำหรับอัปเดต Task ที่มีอยู่ (ส่งเฉพาะฟิลด์ที่ต้องการเปลี่ยนแปลง)"
+      properties:
+        title:
+          type: string
+          example: "Updated Project Title"
+        description:
+          type: string
+          example: "The project requirements have changed. See attached document."
+        due_date:
+          type: string
+          format: date
+          example: "2026-01-15"
+        priority:
+          type: string
+          enum: [Low, Medium, High]
+          example: "High"
+        status:
+          type: string
+          enum: [Pending, In Progress, Completed]
+          example: "In Progress"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: "รายละเอียดข้อผิดพลาด"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: user_id
+
+security:
+  - cookieAuth: []
+
+# ===============================================================
+#  กลุ่มของ API
+# ===============================================================
+tags:
+  - name: Categories
+    description: "จัดการหมวดหมู่ (Categories)"
+  - name: Tasks
+    description: "จัดการ Task หลัก"
+  - name: Task - Lists (Kanban)
+    description: "จัดการ Lists ใน Kanban Board"
+  - name: Task - Cards (Subtasks)
+    description: "จัดการ Cards (Subtasks) ใน Lists"
+  - name: Archive
+    description: "จัดการ Tasks ในถังขยะ (Archive)"
+
+# ===============================================================
+#  รายละเอียดของแต่ละ Path (Endpoint)
+# ===============================================================
+paths:
+
+  # -------------------- Categories --------------------
+  /api/categories:
+    post:
+      tags: [Categories]
+      summary: "สร้างหมวดหมู่ใหม่"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { name: { type: string, example: "Personal" } }
+      responses:
+        '201':
+          description: "สร้างหมวดหมู่สำเร็จ"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Category' }
+
+  /api/categories/{categoryId}:
+    parameters:
+      - { name: categoryId, in: path, required: true, schema: { type: integer } }
+    put:
+      tags: [Categories]
+      summary: "อัปเดตชื่อหมวดหมู่"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { name: { type: string, example: "Updated Name" } }
+      responses:
+        '200':
+          description: "อัปเดตสำเร็จ"
+    delete:
+      tags: [Categories]
+      summary: "ลบหมวดหมู่"
+      responses:
+        '200':
+          description: "ลบสำเร็จ"
+          
+  # -------------------- Tasks --------------------
+  /api/tasks:
+    post:
+      tags: [Tasks]
+      summary: "สร้าง Task ใหม่"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, example: "New API Task" }
+                description: { type: string, example: "Description here" }
+                due_date: { type: string, format: date, example: "2025-10-20" }
+                priority: { type: string, enum: [Low, Medium, High] }
+                category_id: { type: integer, example: 0 }
+      responses:
+        '200': { description: "สร้าง Task สำเร็จ" }
+        
+  /api/tasks/{taskId}:
+    parameters:
+      - { name: taskId, in: path, required: true, schema: { type: integer } }
+    put:
+      tags: [Tasks]
+      summary: "อัปเดตข้อมูล Task"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskPayload'
+      responses:
+        '200': { description: "อัปเดต Task สำเร็จ" }
+
+  /api/tasks/{taskId}/soft-delete:
+    parameters:
+      - { name: taskId, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Tasks]
+      summary: "ย้าย Task ไปยัง Archive (Soft Delete)"
+      responses:
+        '200': { description: "ย้ายไป Archive สำเร็จ" }
+
+  /api/tasks/{taskId}/complete:
+    parameters:
+      - { name: taskId, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Tasks]
+      summary: "เสร็จสิ้น Task (เมื่อไม่มี List เหลือ)"
+      responses:
+        '200': { description: "Task เสร็จสิ้นสมบูรณ์" }
+        '400': { description: "ไม่สามารถทำได้ เพราะยังมี List เหลืออยู่" }
+
+  # -------------------- Archive --------------------
+  /api/archive/{taskId}/recover:
+    parameters:
+      - { name: taskId, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Archive]
+      summary: "กู้คืน Task จาก Archive"
+      responses:
+        '200': { description: "กู้คืน Task สำเร็จ" }
+
+  /api/archive/{taskId}:
+    parameters:
+      - { name: taskId, in: path, required: true, schema: { type: integer } }
+    delete:
+      tags: [Archive]
+      summary: "ลบ Task อย่างถาวรจาก Archive"
+      responses:
+        '200': { description: "ลบ Task ถาวรสำเร็จ" }
+
+  # -------------------- Lists (Kanban) --------------------
+  /api/tasks/{taskId}/lists:
+    parameters:
+      - { name: taskId, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Task - Lists (Kanban)]
+      summary: "สร้าง List ใหม่ใน Task"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { title: { type: string, example: "In Progress" } }
+      responses:
+        '201':
+          description: "สร้าง List สำเร็จ"
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/List' } }
+
+  /api/lists/{listId}:
+    parameters:
+      - { name: listId, in: path, required: true, schema: { type: integer } }
+    put:
+      tags: [Task - Lists (Kanban)]
+      summary: "อัปเดตชื่อ List"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { title: { type: string, example: "Testing" } }
+      responses:
+        '200': { description: "อัปเดตสำเร็จ" }
+    delete:
+      tags: [Task - Lists (Kanban)]
+      summary: "ลบ List"
+      responses:
+        '200': { description: "ลบสำเร็จ" }
+
+  /api/lists/reorder:
+    post:
+      tags: [Task - Lists (Kanban)]
+      summary: "จัดลำดับ Lists ใหม่"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                listIds: { type: array, items: { type: integer }, example: [3, 1, 2] }
+      responses:
+        '200': { description: "จัดลำดับสำเร็จ" }
+
+  /api/lists/{listId}/complete:
+    parameters:
+      - { name: listId, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Task - Lists (Kanban)]
+      summary: "เสร็จสิ้น List (เมื่อไม่มี Card เหลือ)"
+      responses:
+        '200': { description: "List เสร็จสิ้นสมบูรณ์" }
+        '400': { description: "ไม่สามารถทำได้ เพราะยังมี Card เหลืออยู่" }
+
+  # -------------------- Cards (Subtasks) --------------------
+  /api/lists/{listId}/cards:
+    parameters:
+      - { name: listId, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Task - Cards (Subtasks)]
+      summary: "สร้าง Card ใหม่ใน List"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { description: { type: string, example: "Create API endpoint" } }
+      responses:
+        '201':
+          description: "สร้าง Card สำเร็จ"
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Card' } }
+  
+  /api/cards/{cardId}:
+    parameters:
+      - { name: cardId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [Task - Cards (Subtasks)]
+      summary: "ดูรายละเอียด Card"
+      responses:
+        '200':
+          description: "สำเร็จ"
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Card' } }
+    put:
+      tags: [Task - Cards (Subtasks)]
+      summary: "อัปเดตรายละเอียด Card"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { description: { type: string, example: "Updated description" } }
+      responses:
+        '200': { description: "อัปเดตสำเร็จ" }
+    delete:
+      tags: [Task - Cards (Subtasks)]
+      summary: "ลบ Card"
+      responses:
+        '200': { description: "ลบสำเร็จ" }
+        
+  /api/cards/{cardId}/move:
+    parameters:
+      - { name: cardId, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Task - Cards (Subtasks)]
+      summary: "ย้าย Card ไปยัง List อื่น"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { newListId: { type: integer, example: 21 } }
+      responses:
+        '200': { description: "ย้ายสำเร็จ" }
+
+  /api/cards/{cardId}/toggle:
+    parameters:
+      - { name: cardId, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Task - Cards (Subtasks)]
+      summary: "สลับสถานะของ Card (is_done)"
+      responses:
+        '200':
+          description: "สลับสถานะสำเร็จ"
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Card' } }

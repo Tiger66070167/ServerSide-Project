@@ -36,20 +36,32 @@ exports.showCreateForm = async (req, res) => {
 };
 
 exports.createTask = async (req, res) => {
-  const { title, description, due_date, priority, category_id } = req.body;
-  const user_id = req.cookies.user_id;
+  try {
+    const { title, description, due_date, priority, category_id } = req.body;
+    const user_id = req.cookies.user_id;
 
-  await taskModel.createTask({
-    title,
-    description,
-    due_date: due_date || null,
-    priority,
-    status: 'pending', // Always pending on create
-    category_id: category_id || null,
-    user_id
-  });
+    // 🎯 1. เรียก model.createTask และเก็บ "ค่าที่มัน return กลับมา" ไว้ในตัวแปร newTaskId
+    const newTaskId = await taskModel.createTask({
+      title,
+      description,
+      due_date: due_date || null,
+      priority,
+      status: 'Pending',
+      category_id: category_id || null,
+      user_id
+    });
+    
+    // 🎯 2. ตอนนี้ newTaskId คือตัวเลข ID ของ Task ใหม่เรียบร้อยแล้ว
+    // เราสามารถนำไปใช้ได้เลย ไม่ต้องเรียกฟังก์ชันอื่นอีก
+    const createdTask = await taskModel.getTaskById(newTaskId);
 
-  res.redirect('/');
+    // 🎯 3. ตอบกลับเป็น JSON
+    res.status(201).json(createdTask);
+
+  } catch (error) {
+    console.error('Error creating task:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
 
 exports.showEditForm = async (req, res) => {
@@ -65,43 +77,48 @@ exports.showEditForm = async (req, res) => {
 };
 
 exports.updateTask = async (req, res) => {
-  const taskId = req.params.id;
-  
-  // 1. ดึงข้อมูล Task ปัจจุบันมาก่อน
-  const currentTask = await taskModel.getTaskById(taskId);
-  if (!currentTask) return res.status(404).send('Task not found');
+  try {
+    const taskId = req.params.id;
+    const currentTask = await taskModel.getTaskById(taskId);
 
-  // 2. สร้าง object ข้อมูลใหม่ โดยใช้ข้อมูลปัจจุบันเป็นพื้นฐาน
-  const updatedData = {
-    title: req.body.title || currentTask.title,
-    description: req.body.description || currentTask.description,
-    due_date: req.body.due_date || currentTask.due_date,
-    priority: req.body.priority || currentTask.priority,
-    status: req.body.status || currentTask.status,
-    category_id: req.body.category_id || currentTask.category_id,
-  };
+    if (!currentTask) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
 
-  // 3. ส่งข้อมูลที่สมบูรณ์ไปอัปเดต
-  await taskModel.updateTask(taskId, updatedData);
+    const updatedData = {
+      title: req.body.title || currentTask.title,
+      description: req.body.description || currentTask.description,
+      due_date: req.body.due_date || currentTask.due_date,
+      priority: req.body.priority || currentTask.priority,
+      status: req.body.status || currentTask.status,
+      category_id: req.body.hasOwnProperty('category_id') 
+                   ? req.body.category_id 
+                   : currentTask.category_id,
+    };
 
-  // 4. ตรวจสอบว่า request มาจาก AJAX หรือไม่
-  if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
-    // ถ้ามาจาก AJAX (Quick Actions), ตอบกลับเป็น JSON
-    res.status(200).json({ message: 'Task updated successfully' });
-  } else {
-    // ถ้ามาจากฟอร์มปกติ (Detailed Edit), redirect
-    res.redirect(`/${taskId}/board`);
+    await taskModel.updateTask(taskId, updatedData);
+    
+    // Always return JSON for the API
+    const newlyUpdatedTask = await taskModel.getTaskById(taskId);
+    res.status(200).json(newlyUpdatedTask);
+
+  } catch (error) {
+    if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(400).json({ error: 'Invalid category_id: This category does not exist.' });
+    }
+    console.error("Error updating task:", error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 exports.deleteTask = async (req, res) => {
   await taskModel.deleteTask(req.params.id);
-  res.redirect('/archive');
+  res.status(200).json({ message: `Task ${req.params.id} has been permanently deleted.` });
 };
 
 exports.softDeleteTask = async (req, res) => {
   await taskModel.softDeleteTask(req.params.id);
-  res.redirect('/');
+  res.status(200).json({ message: `Task ${req.params.id} moved to archive.` });
 };
 
 exports.viewarchive = async (req, res) => {
@@ -124,8 +141,8 @@ exports.viewarchive = async (req, res) => {
 
 exports.recoverTask = async (req, res) =>{
   await taskModel.recoverTask(req.params.id);
-  res.redirect('/archive')
-}
+  res.status(200).json({ message: `Task ${req.params.id} has been recovered.` });
+};
 // -----------------------------------------------------------
 
 /* =================================

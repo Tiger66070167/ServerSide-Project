@@ -19,7 +19,7 @@
 
   <label>Status:</label>
   <select name="status" <%= task.status === 'completed' ? 'disabled' : '' %>>
-    <% ['Pending', 'In progress', 'Completed'].forEach(s => { %>
+    <% ['Pending', 'In Progress', 'Completed'].forEach(s => { %>
       <option value="<%= s %>" <%= task.status === s ? 'selected' : '' %>><%= s.replace('_', ' ') %></option>
     <% }) %>
   </select>
