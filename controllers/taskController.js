@@ -40,25 +40,28 @@ exports.createTask = async (req, res) => {
     const { title, description, due_date, priority, category_id } = req.body;
     const user_id = req.cookies.user_id;
 
-    // 🎯 1. เรียก model.createTask และเก็บ "ค่าที่มัน return กลับมา" ไว้ในตัวแปร newTaskId
     const newTaskId = await taskModel.createTask({
       title,
       description,
       due_date: due_date || null,
       priority,
-      status: 'Pending',
+      status: 'Pending', // Default status
       category_id: category_id || null,
       user_id
     });
     
-    // 🎯 2. ตอนนี้ newTaskId คือตัวเลข ID ของ Task ใหม่เรียบร้อยแล้ว
-    // เราสามารถนำไปใช้ได้เลย ไม่ต้องเรียกฟังก์ชันอื่นอีก
     const createdTask = await taskModel.getTaskById(newTaskId);
 
-    // 🎯 3. ตอบกลับเป็น JSON
     res.status(201).json(createdTask);
 
   } catch (error) {
+    // 🎯 --- THIS IS THE CRITICAL FIX --- 🎯
+    // Check for the specific MySQL error code for a foreign key violation
+    if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(400).json({ error: 'Invalid category_id: This category does not exist.' });
+    }
+    
+    // For any other errors, log them and return a generic 500 error
     console.error('Error creating task:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

@@ -11,6 +11,8 @@ const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 
+let scheduledTask;
+
 // --- SWAGGER SETUP ---
 const swaggerUi = require('swagger-ui-express');
 const yaml = require('js-yaml');
@@ -46,20 +48,26 @@ app.use('/api/lists', apiListRoutes);
 app.use('/api/cards', apiCardRoutes);
 
 // ตั้งเวลาให้ทำงานทุกๆ เที่ยงคืน
-cron.schedule('0 0 * * *', async () => {
-  console.log('Running a job to delete expired unverified users...');
-  try {
-    const deletedCount = await userModel.deleteUnverifiedExpiredUsers();
-    console.log(`Successfully deleted ${deletedCount} unverified users.`);
-  } catch (err) {
-    console.error('Error during scheduled deletion of users:', err);
-  }
-}, {
-  scheduled: true,
-  timezone: "Asia/Bangkok"
-});
+if (process.env.NODE_ENV !== 'test') {
+  scheduledTask = cron.schedule('0 0 * * *', async () => {
+    console.log('Running a job to delete expired unverified users...');
+    try {
+      const deletedCount = await userModel.deleteUnverifiedExpiredUsers();
+      console.log(`Successfully deleted ${deletedCount} unverified users.`);
+    } catch (err) {
+      console.error('Error during scheduled deletion of users:', err);
+    }
+  }, {
+      scheduled: true,
+      timezone: "Asia/Bangkok"
+  });
+}
 
 // Server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+  });
+}
+
+module.exports = { app, scheduledTask }; // Export app for testing

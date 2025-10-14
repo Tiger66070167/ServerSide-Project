@@ -1,5 +1,3 @@
-// routes/apiRoutes/card.js
-
 const express = require('express');
 const router = express.Router();
 const taskController = require('../../controllers/taskController');
@@ -7,6 +5,9 @@ const { checkAuth } = require('../../middleware/authMiddleware');
 
 router.use(checkAuth);
 
+/* ===========================
+   API: Card Management
+=========================== */
 // GET /api/cards/{cardId}
 router.get('/:cardId', taskController.getCardDetails);
 
