@@ -1,0 +1,31 @@
+///// How To Set Up And Run Project/////
+
+1.Set Up Database
+เปิดโปรแกรม Docker Desktop และ ใช้คำสั่ง Run Docker-compose up -d
+ใน Terminal หรือ Command Prompt เพื่อใช้งาน Database สามารถเปิดดูรายละเอียดเพิ่มเติมได้ที่ไฟล์ docker-compose.yml
+และเข้าถึง Database ได้โดยใช้โปรแกรม MySQL Workbench หรือโปรแกรมจัดการฐานข้อมูลอื่นๆ
+
+2.Environment Variables
+สร้างไฟล์ .env ในโฟลเดอร์โปรเจคนี้ โดยคัดลอกข้อมูลจากไฟล์ .env.example และกรอกค่าที่เหมาะสมสำหรับตัวแปรสภาพแวดล้อมต่างๆ เช่น ข้อมูลการเชื่อมต่อฐานข้อมูล
+และข้อมูลการตั้งค่าอื่นๆ ที่จำเป็นสำหรับการทำงานของโปรเจคนี้
+
+///// Environment Variables Description /////
+DB_HOST: ที่อยู่ของเซิร์ฟเวอร์ฐานข้อมูล (เช่น localhost)
+DB_PORT: พอร์ตที่ใช้เชื่อมต่อกับฐานข้อมูล (เช่น 3306)
+DB_USER: ชื่อผู้ใช้สำหรับเชื่อมต่อกับฐานข้อมูล (เช่น root)
+DB_PASSWORD: รหัสผ่านสำหรับเชื่อมต่อกับฐานข้อมูล (เช่น yourPassword)
+DB_DATABASE: ชื่อฐานข้อมูลที่ต้องการเชื่อมต่อ (เช่น task_manager)
+EMAIL_USER: อีเมลที่ใช้สำหรับส่งอีเมล (เช่น yourEmail)   
+JWT_SECRET: คีย์ลับที่ใช้สำหรับการสร้างและตรวจสอบ JWT (เช่น yourjwtsecret)
+
+3.Run Server
+เปิด Terminal หรือ Command Prompt ในโฟลเดอร์โปรเจคนี้ และใช้คำสั่ง npm install เพื่อติดตั้ง dependencies ที่จำเป็น
+จากนั้นใช้คำสั่ง npm run dev เพื่อรันเซิร์ฟเวอร์
+และสามารถเข้าถึง Websied ได้ที่ http://localhost:3000
+
+///// Api Swagger Documentation /////
+หลังจากรันเซิร์ฟเวอร์แล้ว สามารถเข้าถึงเอกสาร API ได้ที่ http://localhost:3000/api-docs
+
+///// Note /////
+-โปรดตรวจสอบให้แน่ใจว่าได้ติดตั้ง Node.js และ Docker Desktop บนเครื่องของคุณแล้ว
+-หากมีการเปลี่ยนแปลงในไฟล์ .env อย่าลืมรีสตาร์ทเซิร์ฟเวอร์เพื่อให้การเปลี่ยนแปลงมีผล
