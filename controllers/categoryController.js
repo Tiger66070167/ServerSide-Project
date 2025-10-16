@@ -1,3 +1,4 @@
+// controllers/categoryController.js
 const categoryModel = require('../models/categoryModel');
 
 exports.createCategory = async (req, res) => {
@@ -36,8 +37,7 @@ exports.deleteCategory = async (req, res) => {
         res.status(200).json({ message: 'Category deleted successfully' });
         
     } catch (error) {
-        // ⭐️⭐️⭐️ นี่คือส่วนที่สำคัญที่สุด ⭐️⭐️⭐️
-        // เราจะ Log Error ทั้ง object เพื่อดูรายละเอียดทั้งหมด
+        // Log Error ทั้ง object
         console.error("--- ERROR DELETING CATEGORY ---");
         console.error("Timestamp:", new Date().toISOString());
         console.error("Requested Category ID:", req.params.categoryId);

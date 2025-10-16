@@ -2,11 +2,11 @@
 
 const request = require('supertest');
 const { app, scheduledTask } = require('../app');
-const db = require('../config/db'); // 🎯 1. Import connection pool
-const bcrypt = require('bcrypt');   // 🎯 2. Import bcrypt
+const db = require('../config/db');
+const bcrypt = require('bcrypt');
 
 // ===============================================================
-//  เทสกลุ่มของ Category API
+//  Test Group of Category API
 // ===============================================================
 describe('Category API Endpoints', () => {
 

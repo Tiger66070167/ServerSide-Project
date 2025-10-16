@@ -1,3 +1,4 @@
+// app.js
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -41,6 +42,7 @@ app.use('/', taskRoutes);
 app.use('/', authRoutes);
 app.use('/categories', categoryRoutes);
 
+// API Routes
 app.use('/api/categories', apiCategoryRoutes);
 app.use('/api/tasks', apiTaskRoutes);
 app.use('/api/archive', apiArchiveRoutes);
@@ -63,7 +65,7 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
-// Server
+// Start Server
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

@@ -1,3 +1,4 @@
+// controllers/taskController.js
 const taskModel = require('../models/taskModel');
 const userModel = require('../models/userModel');
 const categoryModel = require('../models/categoryModel')
@@ -55,7 +56,6 @@ exports.createTask = async (req, res) => {
     res.status(201).json(createdTask);
 
   } catch (error) {
-    // 🎯 --- THIS IS THE CRITICAL FIX --- 🎯
     // Check for the specific MySQL error code for a foreign key violation
     if (error.code === 'ER_NO_REFERENCED_ROW_2') {
       return res.status(400).json({ error: 'Invalid category_id: This category does not exist.' });
@@ -162,7 +162,7 @@ exports.showKanbanBoard = async (req, res) => {
       return res.redirect('/login');
     }
 
-    // ⭐️⭐️⭐️ 1. ดึงข้อมูลทั้งหมดที่จำเป็นพร้อมกัน ⭐️⭐️⭐️
+    // 1. ดึงข้อมูลทั้งหมดที่จำเป็นพร้อมกัน
     const [task, lists, categories] = await Promise.all([
       taskModel.getTaskById(taskId),
       subtaskModel.getListsByTaskId(taskId),
@@ -180,7 +180,7 @@ exports.showKanbanBoard = async (req, res) => {
       })
     );
 
-    // ⭐️⭐️⭐️ 2. ส่ง categories เข้าไปใน res.render ⭐️⭐️⭐️
+    // 2. ส่ง categories เข้าไปใน res.render
     res.render('kanban', {
       task,
       lists: listsWithCards,
@@ -226,7 +226,7 @@ exports.createList = async (req, res) => {
 // 3. สร้าง Card ใหม่ใน List
 exports.createCard = async (req, res) => {
   try {
-    // ⭐️⭐️⭐️ เราจะใช้ listId จาก URL เท่านั้น ⭐️⭐️⭐️
+    // ช้ listId จาก URL เท่านั้น
     const { listId } = req.params; 
     const { description } = req.body;
 
@@ -234,7 +234,7 @@ exports.createCard = async (req, res) => {
       return res.status(400).json({ error: 'Description is required' });
     }
 
-    // ส่งแค่ description และ listId ไปให้ Model ก็เพียงพอแล้ว
+    // ส่งแค่ description และ listId ไปให้ Model
     const newCard = await subtaskModel.createCard(description, listId);
 
     res.status(201).json(newCard);

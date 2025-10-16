@@ -655,11 +655,10 @@
         const searchInput = document.getElementById('list-search-input');
         if (!searchInput) return;
 
-        // (ไม่ต้องประกาศ allLists ตรงนี้แล้ว)
         const noResultsMessage = document.getElementById('no-results-message');
 
         searchInput.addEventListener('input', () => {
-            // ⭐️⭐️⭐️ ค้นหา List ทั้งหมดใหม่ทุกครั้งที่พิมพ์ ⭐️⭐️⭐️
+            // ค้นหา List ทั้งหมดใหม่ทุกครั้งที่พิมพ์
             const allLists = document.querySelectorAll('.kanban-list:not(.add-new-list)');
             
             const searchTerm = searchInput.value.trim().toLowerCase();

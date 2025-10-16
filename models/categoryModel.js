@@ -1,3 +1,4 @@
+// models/categoryModel.js
 const db = require('../config/db');
 
 exports.getCategoriesByUser = async (user_id) => {
@@ -18,8 +19,8 @@ exports.updateCategory = async (categoryId, name, userId) => {
 };
 
 exports.deleteCategory = async (categoryId, userId) => {
-    // ⭐️⭐️⭐️ ขั้นตอนที่ 1: อัปเดต Task ที่เกี่ยวข้องทั้งหมด ⭐️⭐️⭐️
-    // เราจะอัปเดตเฉพาะ Task ที่เป็นของ user คนนี้เท่านั้น เพื่อความปลอดภัย
+    // ขั้นตอนที่ 1: อัปเดต Task ที่เกี่ยวข้องทั้งหมด
+    // อัปเดตเฉพาะ Task ที่เป็นของ user คนนี้เท่านั้น
     await db.query(
         `UPDATE tasks 
          SET category_id = NULL 
@@ -27,7 +28,7 @@ exports.deleteCategory = async (categoryId, userId) => {
         [categoryId, userId]
     );
 
-    // ⭐️⭐️⭐️ ขั้นตอนที่ 2: ลบ Category หลังจากที่ Task ถูกปลดการเชื่อมโยงแล้ว ⭐️⭐️⭐️
+    // ขั้นตอนที่ 2: ลบ Category หลังจากที่ Task ถูกปลดการเชื่อมโยงแล้ว
     await db.query(
         'DELETE FROM categories WHERE category_id = ? AND user_id = ?',
         [categoryId, userId]

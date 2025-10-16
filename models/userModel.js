@@ -1,3 +1,4 @@
+// models/userModel.js
 const pool = require('../config/db');
 
 // สร้าง user
@@ -74,14 +75,14 @@ exports.updateUserProfile = async (userId, userData) => {
   console.log("Executing SQL:", sql);
   console.log("With Params:", params);
 
-  // เราจะเปลี่ยนมาใช้ try...catch ที่นี่ เพื่อดักจับ Error จากฐานข้อมูล
+  // ใช้ try...catch ที่นี่ เพื่อดักจับ Error จากฐานข้อมูล
   try {
     const [result] = await pool.execute(sql, params);
     console.log("SQL executed successfully. Result:", result);
     return result; // ส่งผลลัพธ์กลับไปให้ Controller
   } catch (dbError) {
     console.error("!!! DATABASE ERROR in updateUserProfile !!!", dbError);
-    // **สำคัญ:** เมื่อเกิด error เราต้อง throw มันออกไป
+    // **สำคัญ:** เมื่อเกิด error ต้อง throw มันออกไป
     // เพื่อให้ try...catch ใน Controller สามารถจับได้
     throw dbError;
   }

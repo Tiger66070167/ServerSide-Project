@@ -39,8 +39,7 @@ exports.createCard = async (description, listId) => {
   
   const insertId = result.insertId;
 
-  // 2. ⭐️⭐️⭐️ ส่วนที่เพิ่มเข้ามา ⭐️⭐️⭐️
-  // ดึงข้อมูล card ที่เพิ่งสร้างกลับมาทั้งหมด
+  // 2. ดึงข้อมูล card ที่เพิ่งสร้างกลับมาทั้งหมด
   const [rows] = await db.query('SELECT * FROM subtask_cards WHERE card_id = ?', [insertId]);
   
   // 3. คืนค่า object ของ card ใหม่กลับไปให้ Controller
@@ -56,7 +55,7 @@ exports.updateListTitle = async (listId, newTitle) => {
 };
 
 exports.deleteList = async (listId) => {
-  // เนื่องจากเราตั้ง ON DELETE CASCADE ไว้, card ทั้งหมดใน list นี้จะถูกลบไปด้วย
+  // ลบ List และ Card ที่เกี่ยวข้องทั้งหมด
   await db.query('DELETE FROM subtask_lists WHERE list_id = ?', [listId]);
 };
 
@@ -75,7 +74,7 @@ exports.getCardById = async (cardId) => {
 };
 
 exports.updateListOrder = async (listOrder) => {
-  // listOrder จะเป็น array ของ [list_id, list_id, ...]
+  // listOrder ควรเป็น array ของ listId ที่เรียงลำดับตามที่ต้องการ
   const promises = listOrder.map((listId, index) => {
     return db.query('UPDATE subtask_lists SET order_index = ? WHERE list_id = ?', [index, listId]);
   });

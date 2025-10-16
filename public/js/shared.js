@@ -52,7 +52,7 @@ function openConfirmationModal({ title, message, confirmText = 'Confirm', cancel
 }
 
 /**
- * NEW: Opens a pop-up with a text input field, like a custom prompt.
+ * Opens a pop-up with a text input field, like a custom prompt.
  * @param {object} options - Configuration for the prompt modal.
  */
 function openPromptModal({ title, label, confirmText = 'Save', defaultValue = '', onConfirm }) {
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Handler Functions for Category Management ---
 
     /**
-     * UPDATED: Opens a custom pop-up to add a new category.
+     * Opens a custom pop-up to add a new category.
      */
     function handleAddCategory() {
         openPromptModal({
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * UPDATED: Opens a custom pop-up to edit the selected category.
+     * Opens a custom pop-up to edit the selected category.
      */
     function handleEditCategory(button) {
         const select = button.closest('.select-with-add').querySelector('.category-select');
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * FIXED: Shows a confirmation modal to delete the selected category.
+     * Shows a confirmation modal to delete the selected category.
      */
     function handleDeleteCategory(button) {
         const select = button.closest('.select-with-add').querySelector('.category-select');

@@ -1,3 +1,4 @@
+// models/taskModel.js
 const db = require('../config/db');
 
 // Render Task //
@@ -49,7 +50,6 @@ exports.getDeletedTasks = async () => {
 };
 
 exports.getFilteredAndSortedTasks = async (status, category_id, sort, user_id) => {
-    // ⭐️⭐️⭐️ แก้ไข SQL Query ทั้งหมด ⭐️⭐️⭐️
     let query = `
         SELECT 
             t.*,

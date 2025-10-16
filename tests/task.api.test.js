@@ -6,7 +6,7 @@ const db = require('../config/db');
 const bcrypt = require('bcrypt');
 
 // ===============================================================
-//  เทสกลุ่มของ Task API
+//  Test Group of Task API
 // ===============================================================
 describe('Task API Endpoints', () => {
 
@@ -82,7 +82,7 @@ describe('Task API Endpoints', () => {
         const taskData = {
             title: 'My First Test Task',
             priority: 'Medium',
-            category_id: testCategoryId // ใช้ Category ID ที่เราสร้างไว้ใน beforeAll
+            category_id: testCategoryId // ใช้ Category ID ที่สร้างไว้ใน beforeAll
         };
 
         const res = await request(app)
@@ -110,7 +110,7 @@ describe('Task API Endpoints', () => {
             .set('Cookie', cookie)
             .send(taskData);
         
-        // เราคาดหวัง 400 Bad Request เพราะ Foreign Key constraint จะ fail
+        // คาดหวัง 400 Bad Request เพราะ Foreign Key constraint จะ fail
         expect(res.statusCode).toEqual(400); 
         expect(res.body.error).toContain('Invalid category_id');
     });

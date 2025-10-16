@@ -26,7 +26,6 @@
                             <span class="task-date">Archived: <%= new Date(task.created_at).toLocaleString() %></span>
                         </div>
                         <div class="task-actions">
-                            <!-- ⭐️ 2. เปลี่ยนปุ่มเป็น type="button" และเรียก openModal() ⭐️ -->
                             <button type="button" class="recover-btn" onclick="openModal('/recover/<%= task.task_id %>/confirm')">Recover</button>
                             <button type="button" class="trash-btn" onclick="openModal('/delete/<%= task.task_id %>/confirm')">Delete Permanently</button>
                         </div>
@@ -40,7 +39,6 @@
 
     <%- include('partials/footer') %>
 
-    <!-- ⭐️ 3. เพิ่ม Modal Container และ Script ⭐️ -->
     <%- include('pop-up/modalContainer.ejs') %>
 
 </body>
