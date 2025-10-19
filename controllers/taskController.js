@@ -4,6 +4,12 @@ const userModel = require('../models/userModel');
 const categoryModel = require('../models/categoryModel')
 const subtaskModel = require('../models/subtaskModel');
 
+// --- Helper function to check if it's an API request ---
+const isApiRequest = (req) => {
+  // Check for API routes or AJAX requests from frontend JS
+  return req.originalUrl.startsWith('/api/') || req.get('X-Requested-With') === 'XMLHttpRequest';
+};
+
 /* =================================
    TASK CONTROLLER METHODS
    ================================= */
@@ -52,18 +58,27 @@ exports.createTask = async (req, res) => {
     });
     
     const createdTask = await taskModel.getTaskById(newTaskId);
-
-    res.status(201).json(createdTask);
+    
+    // MODIFIED: Respond based on request type
+    if (isApiRequest(req)) {
+        res.status(201).json(createdTask);
+    } else {
+        res.redirect('/');
+    }
 
   } catch (error) {
-    // Check for the specific MySQL error code for a foreign key violation
     if (error.code === 'ER_NO_REFERENCED_ROW_2') {
-      return res.status(400).json({ error: 'Invalid category_id: This category does not exist.' });
+        const errorMessage = 'Invalid category_id: This category does not exist.';
+        return isApiRequest(req)
+            ? res.status(400).json({ error: errorMessage })
+            : res.redirect(`/?error=${encodeURIComponent(errorMessage)}`);
     }
     
-    // For any other errors, log them and return a generic 500 error
     console.error('Error creating task:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const errorMessage = 'Internal server error';
+    return isApiRequest(req)
+        ? res.status(500).json({ error: errorMessage })
+        : res.redirect(`/?error=${encodeURIComponent(errorMessage)}`);
   }
 };
 
@@ -85,7 +100,10 @@ exports.updateTask = async (req, res) => {
     const currentTask = await taskModel.getTaskById(taskId);
 
     if (!currentTask) {
-      return res.status(404).json({ error: 'Task not found' });
+        const errorMessage = 'Task not found';
+        return isApiRequest(req)
+            ? res.status(404).json({ error: errorMessage })
+            : res.redirect(`/${taskId}/kanban?error=${encodeURIComponent(errorMessage)}`);
     }
 
     const updatedData = {
@@ -101,50 +119,78 @@ exports.updateTask = async (req, res) => {
 
     await taskModel.updateTask(taskId, updatedData);
     
-    // Always return JSON for the API
-    const newlyUpdatedTask = await taskModel.getTaskById(taskId);
-    res.status(200).json(newlyUpdatedTask);
+    // MODIFIED: Respond based on request type
+    if (isApiRequest(req)) {
+        const newlyUpdatedTask = await taskModel.getTaskById(taskId);
+        res.status(200).json(newlyUpdatedTask);
+    } else {
+        // Redirect back to the Kanban board for that task
+        res.redirect(`/${taskId}/kanban`);
+    }
 
   } catch (error) {
+    const taskId = req.params.id;
     if (error.code === 'ER_NO_REFERENCED_ROW_2') {
-      return res.status(400).json({ error: 'Invalid category_id: This category does not exist.' });
+        const errorMessage = 'Invalid category_id: This category does not exist.';
+        return isApiRequest(req)
+            ? res.status(400).json({ error: errorMessage })
+            : res.redirect(`/${taskId}/kanban?error=${encodeURIComponent(errorMessage)}`);
     }
     console.error("Error updating task:", error);
-    res.status(500).json({ error: 'Internal server error' });
+    const errorMessage = 'Internal server error';
+    return isApiRequest(req)
+        ? res.status(500).json({ error: errorMessage })
+        : res.redirect(`/${taskId}/kanban?error=${encodeURIComponent(errorMessage)}`);
   }
 };
 
 exports.deleteTask = async (req, res) => {
   await taskModel.deleteTask(req.params.id);
-  res.status(200).json({ message: `Task ${req.params.id} has been permanently deleted.` });
+  // MODIFIED: Respond based on request type
+  if(isApiRequest(req)){
+      res.status(200).json({ message: `Task ${req.params.id} has been permanently deleted.` });
+  } else {
+      res.redirect('/archive');
+  }
 };
 
 exports.softDeleteTask = async (req, res) => {
   await taskModel.softDeleteTask(req.params.id);
-  res.status(200).json({ message: `Task ${req.params.id} moved to archive.` });
+  // MODIFIED: Respond based on request type
+  if (isApiRequest(req)) {
+      res.status(200).json({ message: `Task ${req.params.id} moved to archive.` });
+  } else {
+      res.redirect('/');
+  }
 };
 
 exports.viewarchive = async (req, res) => {
-  const tasks = await taskModel.getDeletedTasks();
   try {
-    if (req.cookies.user_id) {
-        const user = await userModel.findById(req.cookies.user_id);
-        if (user) {
-            username = user.username;
-        }
+    const user = await userModel.findById(req.cookies.user_id);
+
+    if (!user) {
+      res.clearCookie('user_id');
+      return res.redirect('/login');
     }
 
-  res.render('archive', { tasks, username, currentPath: '/archive' });
+    const tasks = await taskModel.getDeletedTasks(); // keep original model usage
+    const username = user.username;
 
+    res.render('archive', { tasks, username, user, currentPath: '/archive' });
   } catch (err) {
-    console.error("Error rendering archive page:", err.message);
+    console.error("Error rendering archive page:", err);
     res.redirect('/');
   }
 };
 
 exports.recoverTask = async (req, res) =>{
   await taskModel.recoverTask(req.params.id);
-  res.status(200).json({ message: `Task ${req.params.id} has been recovered.` });
+  // MODIFIED: Respond based on request type
+  if(isApiRequest(req)){
+      res.status(200).json({ message: `Task ${req.params.id} has been recovered.` });
+  } else {
+      res.redirect('/archive');
+  }
 };
 // -----------------------------------------------------------
 
@@ -186,6 +232,7 @@ exports.showKanbanBoard = async (req, res) => {
       lists: listsWithCards,
       categories, // <-- ส่งตัวแปร categories ไปให้ EJS
       username: user.username,
+      user: user,
       currentPath: '/kanban'
     });
 
@@ -195,6 +242,7 @@ exports.showKanbanBoard = async (req, res) => {
   }
 };
 
+// ... (ส่วนที่เหลือของ Subtask methods ไม่จำเป็นต้องแก้ไขเพราะถูกเรียกใช้โดย fetch ทั้งหมดอยู่แล้ว) ...
 // 2. สร้าง List ใหม่
 exports.createList = async (req, res) => {
   try {
@@ -239,7 +287,8 @@ exports.createCard = async (req, res) => {
 
     res.status(201).json(newCard);
 
-  } catch (err) {
+  } catch (err)
+ {
     console.error("Error creating card:", err.message);
     res.status(500).json({ error: 'Failed to create card' });
   }

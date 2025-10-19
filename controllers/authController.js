@@ -136,7 +136,25 @@ exports.renderSettings = async (req, res) => {
       return res.redirect('/login');
     }
 
-    res.render('settings', { user: user, username: user.username, currentPath: '/settings' });
+    // รับ query params สำหรับแสดงข้อความ success/error
+    const { update, error } = req.query;
+    let message = null;
+    let errorMessage = null;
+
+    if (update === 'success') {
+      message = 'Profile updated successfully!';
+    }
+    if (error) {
+      errorMessage = error;
+    }
+
+    res.render('settings', { 
+      user: user, 
+      username: user.username, 
+      currentPath: '/settings',
+      message: message,
+      error: errorMessage
+    });
   } catch (err) {
     console.error("Error rendering settings page:", err.message);
     res.redirect('/');
@@ -144,27 +162,41 @@ exports.renderSettings = async (req, res) => {
 };
 
 
-exports.updateUser = [
-  upload.single('avatar'),
-  async (req, res) => {
-
+// VVVV --- ใช้ฟังก์ชันนี้ไปวางทับของเดิม --- VVVV
+exports.updateUser = async (req, res) => {
     try {
-      const userId = req.cookies.user_id;
-      const { username, email } = req.body;
-      const userData = { username, email };
-      if (req.file) {
-        userData.avatarUrl = req.file.path.replace('public', '').replace(/\\/g, '/');
-      }
-    
-      await userModel.updateUserProfile(userId, userData);
+        const userId = req.cookies.user_id;
+        if (!userId) {
+            return res.redirect('/login');
+        }
 
-      res.redirect('/settings');
+        // 1. รับค่าจาก body เฉพาะ username เท่านั้น!
+        const { username } = req.body;
+
+        // 2. สร้าง object สำหรับอัปเดตข้อมูล เริ่มต้นด้วย username
+        const updateData = {
+            username: username
+        };
+
+        // 3. ตรวจสอบว่ามีไฟล์ใหม่หรือไม่ (ส่วนนี้ถูกต้องแล้ว)
+        if (req.file) {
+            const avatarUrl = req.file.path.replace('public', '').replace(/\\/g, '/');
+            // ใช้ชื่อ field ให้ตรงกับคอลัมน์ในฐานข้อมูลของคุณ
+            // สมมติว่าชื่อ 'avatar_url'
+            updateData.avatar_url = avatarUrl;
+        }
+        
+        // 4. เรียก Model พร้อมส่งข้อมูลที่กรองแล้ว
+        await userModel.updateUserProfile(userId, updateData);
+
+        return res.redirect('/settings?update=success');
+
     } catch (err) {
-      console.error("!!! ERROR CAUGHT IN CONTROLLER !!!", err);
-      res.status(500).send("An error occurred. Check server logs for details.");
+        console.error("!!! ERROR UPDATING USER PROFILE !!!", err);
+        const errorMessage = encodeURIComponent(err.message);
+        return res.redirect(`/settings?error=${errorMessage}`);
     }
-  }
-];
+};
 
 exports.changePassword = async (req, res) => {
   try {

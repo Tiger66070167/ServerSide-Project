@@ -58,33 +58,38 @@ exports.deleteUser = async (id) => {
   );
 };
 
-// อัปเดตข้อมูลโปรไฟล์ผู้ใช้
-exports.updateUserProfile = async (userId, userData) => {
+// อัปเดตข้อมูลโปรไฟล์ผู้ใช้ (เวอร์ชันไดนามิก)
+exports.updateUserProfile = async (userId, updateData) => {
+  // 1. ดึงชื่อ field ที่ต้องการอัปเดตออกมา (เช่น ['username', 'avatar_url'])
+  const fields = Object.keys(updateData);
 
-  let sql = 'UPDATE users SET username = ?, email = ?';
-  const params = [userData.username, userData.email];
-
-  if (userData.avatarUrl) {
-    sql += ', avatar_url = ?';
-    params.push(userData.avatarUrl);
+  // ป้องกันกรณีที่ไม่มีข้อมูลส่งมาให้อัปเดต
+  if (fields.length === 0) {
+    return; 
   }
 
-  sql += ' WHERE user_id = ?';
-  params.push(userId);
+  // 2. สร้างส่วน "SET" ของ SQL query แบบไดนามิก
+  // ผลลัพธ์ที่ได้: "username = ?, avatar_url = ?"
+  const setClause = fields.map(field => `${field} = ?`).join(', ');
+  
+  // 3. เตรียมค่าที่จะใส่เข้าไปใน query
+  const values = fields.map(field => updateData[field]);
+  
+  // 4. เพิ่ม userId เป็นค่าสุดท้ายสำหรับ WHERE
+  values.push(userId);
 
-  console.log("Executing SQL:", sql);
-  console.log("With Params:", params);
+  // 5. สร้าง SQL query ที่สมบูรณ์
+  const sql = `UPDATE users SET ${setClause} WHERE user_id = ?`;
 
-  // ใช้ try...catch ที่นี่ เพื่อดักจับ Error จากฐานข้อมูล
+  console.log("Executing Dynamic SQL:", sql);
+  console.log("With Params:", values);
+
   try {
-    const [result] = await pool.execute(sql, params);
-    console.log("SQL executed successfully. Result:", result);
-    return result; // ส่งผลลัพธ์กลับไปให้ Controller
+    const [result] = await pool.execute(sql, values);
+    return result;
   } catch (dbError) {
     console.error("!!! DATABASE ERROR in updateUserProfile !!!", dbError);
-    // **สำคัญ:** เมื่อเกิด error ต้อง throw มันออกไป
-    // เพื่อให้ try...catch ใน Controller สามารถจับได้
-    throw dbError;
+    throw dbError; // โยน error ออกไปให้ controller จัดการ
   }
 };
 

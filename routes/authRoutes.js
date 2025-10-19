@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { checkAuth, setNoCache } = require('../middleware/authMiddleware'); // (เราจะสร้างไฟล์นี้ต่อไป)
+const uploadAvatar = require('../middleware/uploadMiddleware');
 
 // --- Authentication Routes ---
 router.get('/login', authController.renderLogin);
@@ -14,7 +15,7 @@ router.get('/verify', authController.verifyEmail);
 
 // --- User Settings & Profile Routes ---
 router.get('/settings', checkAuth, setNoCache, authController.renderSettings);
-router.post('/settings/update', checkAuth, authController.updateUser);
+router.post('/settings/update', checkAuth, uploadAvatar,authController.updateUser);
 router.post('/settings/password', checkAuth, authController.changePassword);
 router.post('/user/delete', checkAuth, authController.deleteUser);
 

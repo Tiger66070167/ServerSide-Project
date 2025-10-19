@@ -1,51 +1,73 @@
 // controllers/categoryController.js
 const categoryModel = require('../models/categoryModel');
 
+// --- Helper function to check if it's an API request ---
+const isApiRequest = (req) => {
+    return req.originalUrl.startsWith('/api/') || req.get('X-Requested-With') === 'XMLHttpRequest';
+};
+  
+
 exports.createCategory = async (req, res) => {
     try {
         const { name } = req.body;
         const user_id = req.cookies.user_id;
 
         if (!name || !user_id) {
-            return res.status(400).json({ error: 'Category name and user ID are required.' });
-        };
+            const error = 'Category name and user ID are required.';
+            return isApiRequest(req) 
+                ? res.status(400).json({ error })
+                : res.redirect(`/?error=${encodeURIComponent(error)}`);
+        }
 
         const newCategory = await categoryModel.createCategory(user_id, name);
-        res.status(201).json(newCategory);
+        
+        // MODIFIED: Respond based on request type
+        if(isApiRequest(req)){
+            res.status(201).json(newCategory);
+        } else {
+            res.redirect('/');
+        }
 
     } catch (error) {
         console.error('Error creating category:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        const errorMessage = 'Internal server error';
+        if(isApiRequest(req)){
+            res.status(500).json({ error: errorMessage });
+        } else {
+            res.redirect(`/?error=${encodeURIComponent(errorMessage)}`);
+        }
     }
 };
 
 exports.deleteCategory = async (req, res) => {
     try {
-        const { categoryId } = req.params; // <-- ตรวจสอบว่าชื่อ parameter ตรงกับ Route
+        const { categoryId } = req.params;
         const userId = req.cookies.user_id;
 
         if (!categoryId || !userId) {
-            return res.status(400).json({ error: 'Missing required IDs for deletion.' });
+            const error = 'Missing required IDs for deletion.';
+            return isApiRequest(req)
+                ? res.status(400).json({ error })
+                : res.redirect(`/?error=${encodeURIComponent(error)}`);
         }
-
-        // --- Debug Log ---
-        console.log(`Attempting to delete Category ID: ${categoryId} for User ID: ${userId}`);
         
         await categoryModel.deleteCategory(categoryId, userId);
         
-        console.log(`Successfully deleted Category ID: ${categoryId}`);
-        res.status(200).json({ message: 'Category deleted successfully' });
+        // MODIFIED: Respond based on request type
+        if(isApiRequest(req)){
+            res.status(200).json({ message: 'Category deleted successfully' });
+        } else {
+            res.redirect('/');
+        }
         
     } catch (error) {
-        // Log Error ทั้ง object
-        console.error("--- ERROR DELETING CATEGORY ---");
-        console.error("Timestamp:", new Date().toISOString());
-        console.error("Requested Category ID:", req.params.categoryId);
-        console.error("User ID from Cookie:", req.cookies.user_id);
-        console.error("Full Error Object:", error); // <-- แสดง Error ทั้งหมด
-        console.error("--- END OF ERROR REPORT ---");
-
-        res.status(500).json({ error: 'Internal server error. Check server logs for details.' });
+        console.error("--- ERROR DELETING CATEGORY ---", error);
+        const errorMessage = 'Internal server error. Check server logs for details.';
+        if(isApiRequest(req)){
+            res.status(500).json({ error: errorMessage });
+        } else {
+            res.redirect(`/?error=${encodeURIComponent(errorMessage)}`);
+        }
     }
 };
 
@@ -54,12 +76,27 @@ exports.updateCategory = async (req, res) => {
         const { categoryId } = req.params;
         const { name } = req.body;
         const userId = req.cookies.user_id;
-        if (!name) return res.status(400).json({ error: 'Name is required' });
+        if (!name) {
+             const error = 'Name is required';
+             return isApiRequest(req)
+                ? res.status(400).json({ error })
+                : res.redirect(`/?error=${encodeURIComponent(error)}`);
+        }
 
         await categoryModel.updateCategory(categoryId, name, userId);
-        res.status(200).json({ message: 'Category updated successfully' });
+
+        // MODIFIED: Respond based on request type
+        if(isApiRequest(req)){
+            res.status(200).json({ message: 'Category updated successfully' });
+        } else {
+            res.redirect('/');
+        }
     } catch (error) {
-        res.status(500).json({ error: 'Failed to update category' });
+        const errorMessage = 'Failed to update category';
+        if(isApiRequest(req)){
+             res.status(500).json({ error: errorMessage });
+        } else {
+             res.redirect(`/?error=${encodeURIComponent(errorMessage)}`);
+        }
     }
 };
-
