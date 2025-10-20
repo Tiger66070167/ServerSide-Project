@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 const userModel = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-require('dotenv').config();
 
 const multer = require('multer');
 const path = require('path');
@@ -161,8 +160,6 @@ exports.renderSettings = async (req, res) => {
   }
 };
 
-
-// VVVV --- ใช้ฟังก์ชันนี้ไปวางทับของเดิม --- VVVV
 exports.updateUser = async (req, res) => {
     try {
         const userId = req.cookies.user_id;
@@ -170,7 +167,7 @@ exports.updateUser = async (req, res) => {
             return res.redirect('/login');
         }
 
-        // 1. รับค่าจาก body เฉพาะ username เท่านั้น!
+        // 1. รับค่าจาก body เฉพาะ username เท่านั้น
         const { username } = req.body;
 
         // 2. สร้าง object สำหรับอัปเดตข้อมูล เริ่มต้นด้วย username
@@ -178,12 +175,13 @@ exports.updateUser = async (req, res) => {
             username: username
         };
 
-        // 3. ตรวจสอบว่ามีไฟล์ใหม่หรือไม่ (ส่วนนี้ถูกต้องแล้ว)
+        // 3. ตรวจสอบว่ามีไฟล์ใหม่หรือไม่
         if (req.file) {
-            const avatarUrl = req.file.path.replace('public', '').replace(/\\/g, '/');
-            // ใช้ชื่อ field ให้ตรงกับคอลัมน์ในฐานข้อมูลของคุณ
-            // สมมติว่าชื่อ 'avatar_url'
-            updateData.avatar_url = avatarUrl;
+            //const avatarUrl = req.file.path.replace('public', '').replace(/\\/g, '/');
+            //updateData.avatar_url = avatarUrl;
+
+            // กรณีใช้ S3 ให้เก็บ URL ที่ได้จาก S3
+            updateData.avatar_url = req.file.location;
         }
         
         // 4. เรียก Model พร้อมส่งข้อมูลที่กรองแล้ว

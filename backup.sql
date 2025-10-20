@@ -119,6 +119,25 @@ CREATE TABLE `users` (
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- เพิ่มผู้ใช้แอดมิน/ทดสอบ
+INSERT INTO users (
+  username, 
+  email, 
+  password_hash, 
+  is_verified, 
+  created_at,
+  avatar_url
+) 
+VALUES (
+  'admin_test',
+  'admin@youremail.com',
+  '$2b$10$h1H6WGkBaNfURgA0oeoKbO8fumh6bFpCO9P2dpp2/4E.2n7Kor4tK',
+  1,
+  NOW(),
+  NULL
+);
+
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
